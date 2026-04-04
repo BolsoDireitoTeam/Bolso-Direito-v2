@@ -68,9 +68,11 @@ body::before {
 }
 
 .sidebar-logo {
+  overflow: hidden;
+  white-space: nowrap;
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   color: var(--bd-teal);
   letter-spacing: -0.5px;
   margin-bottom: 2.5rem;
@@ -124,6 +126,11 @@ body::before {
 }
 .sidebar-user-info small { display: block; color: var(--bd-muted); font-size: 0.72rem; }
 .sidebar-user-info strong { font-size: 0.82rem; }
+
+.sidebar-logo i {
+  font-size: 1.3rem;        /* força o tamanho do ícone */
+  flex-shrink: 0;           /* impede o ícone de empurrar o texto */
+}
 
 
 /* ─── Main layout ────────────────────────────────────────────────*/

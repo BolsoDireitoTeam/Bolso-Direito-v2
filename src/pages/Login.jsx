@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -233,6 +235,8 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -309,7 +313,7 @@ export default function Login({ onLogin }) {
           <div className="login-divider">ou</div>
 
           <div className="btn-secondary-row">
-            <button className="btn-secondary">
+            <button className="btn-secondary"onClick={() => navigate("/registro")}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>

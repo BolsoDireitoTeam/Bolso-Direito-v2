@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
+
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import BottomNav from './components/layout/BottomNav'
@@ -9,6 +10,8 @@ import ActionSheet from './components/layout/ActionSheet'
 
 import Login from './pages/Login'
 import VisaoGeral from './pages/VisaoGeral'
+import Register from './pages/Register'
+
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -26,6 +29,17 @@ function App() {
             : <Login onLogin={() => setIsLoggedIn(true)} />
         }
       />
+
+  {/*rota do registro */}
+    <Route
+      path="/registro"
+      element={
+        isLoggedIn
+          ? <Navigate to="/" replace />
+          : <Register onLogin={() => setIsLoggedIn(true)} />
+      }
+    />
+
 
       {/* Rotas do app — com layout completo */}
       <Route
