@@ -529,6 +529,17 @@ body::before {
   .action-sheet { display: none !important; }
 }
 
+@media (max-width: 991.98px) {
+  .topbar {
+    display: flex;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .main-content {
+    margin-left: 0; /* sem margem no mobile */
+  }
+}
 
 /* ─── Scrollbar customizada ──────────────────────────────────────*/
 ::-webkit-scrollbar       { width: 5px; }
