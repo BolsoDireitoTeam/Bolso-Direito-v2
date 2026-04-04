@@ -1,0 +1,529 @@
+/* ================================================================
+   Bolso Direito – Design System
+   Versão: 1.0
+   Descrição: Estilos globais do app. Complementa Bootstrap 5.
+   Fontes necessárias: Syne (display) + DM Sans (body)
+   ================================================================ */
+
+/* ─── Design Tokens ──────────────────────────────────────────────
+   Altere aqui para mudar o tema em todo o app.
+   ─────────────────────────────────────────────────────────────── */
+:root {
+  --bd-navy:    #1a2236;   /* fundo principal */
+  --bd-navy2:   #222d42;   /* fundo sidebar / bottom nav */
+  --bd-teal:    #4ee3c4;   /* cor de destaque primária */
+  --bd-teal2:   #74ebd5;   /* variante clara do teal */
+  --bd-purple:  #ACB6E5;   /* destaque secundário */
+  --bd-red:     #f06a6a;   /* despesas / alertas */
+  --bd-green:   #4ee3a0;   /* receitas / positivo */
+  --bd-text:    #e8edf6;   /* texto principal */
+  --bd-muted:   #8a9bbf;   /* texto secundário */
+  --bd-card:    rgba(34, 45, 66, 0.85); /* fundo dos cards */
+  --bd-border:  rgba(255, 255, 255, 0.07);
+  --bd-shadow:  0 8px 32px rgba(0, 0, 0, 0.35);
+  --bd-radius:  18px;
+}
+
+
+/* ─── Base ───────────────────────────────────────────────────────*/
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bd-navy);
+  color: var(--bd-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Gradiente de fundo decorativo */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(78, 227, 196, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 10% 80%, rgba(172, 182, 229, 0.07) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+/* ─── Sidebar (desktop) ──────────────────────────────────────────*/
+.sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 240px;
+  background: var(--bd-navy2);
+  border-right: 1px solid var(--bd-border);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.25rem;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--bd-teal);
+  letter-spacing: -0.5px;
+  margin-bottom: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sidebar-logo span { color: var(--bd-text); }
+
+.sidebar-nav { list-style: none; flex: 1; }
+.sidebar-nav li { margin-bottom: 0.35rem; }
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  color: var(--bd-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+  background: rgba(78, 227, 196, 0.1);
+  color: var(--bd-teal);
+}
+.sidebar-nav a i { font-size: 1.1rem; }
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--bd-border);
+}
+
+.sidebar-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--bd-teal), var(--bd-purple));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--bd-navy);
+  flex-shrink: 0;
+}
+.sidebar-user-info small { display: block; color: var(--bd-muted); font-size: 0.72rem; }
+.sidebar-user-info strong { font-size: 0.82rem; }
+
+
+/* ─── Main layout ────────────────────────────────────────────────*/
+.main-content {
+  margin-left: 240px;
+  padding: 2rem 2rem 6rem;
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ─── Topbar (mobile) ────────────────────────────────────────────*/
+.topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.75rem;
+  position: sticky;
+  top: 0;
+  background: var(--bd-navy);
+  z-index: 99;
+  border-bottom: 1px solid var(--bd-border);
+}
+.topbar-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--bd-teal);
+}
+.topbar-logo span { color: var(--bd-text); }
+
+
+/* ─── Page Header ────────────────────────────────────────────────*/
+.page-header { margin-bottom: 1.75rem; }
+
+.page-header .greeting {
+  font-size: 0.85rem;
+  color: var(--bd-muted);
+  margin-bottom: 0.1rem;
+}
+.page-header h1 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  color: var(--bd-text);
+  line-height: 1.1;
+}
+.page-header .date-badge {
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--bd-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--bd-border);
+  border-radius: 20px;
+  padding: 0.15rem 0.7rem;
+}
+
+
+/* ─── Cards ──────────────────────────────────────────────────────*/
+.bd-card {
+  background: var(--bd-card);
+  border: 1px solid var(--bd-border);
+  border-radius: var(--bd-radius);
+  box-shadow: var(--bd-shadow);
+  backdrop-filter: blur(10px);
+  padding: 1.4rem 1.5rem;
+  height: 100%;
+}
+.bd-card h5 {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--bd-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* Balance Hero Card */
+.balance-hero {
+  background: linear-gradient(135deg, #1a3a4a 0%, #0f2535 100%);
+  border: 1px solid rgba(78, 227, 196, 0.2);
+  border-radius: var(--bd-radius);
+  box-shadow: 0 12px 40px rgba(78, 227, 196, 0.1);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.balance-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: rgba(78, 227, 196, 0.06);
+}
+.balance-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: -20px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(172, 182, 229, 0.05);
+}
+.balance-hero label {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+}
+.balance-hero .amount {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  color: var(--bd-teal);
+  line-height: 1.1;
+  margin: 0.3rem 0 1rem;
+}
+.balance-hero .change-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+}
+.change-badge.up   { background: rgba(78, 227, 160, 0.15); color: var(--bd-green); }
+.change-badge.down { background: rgba(240, 106, 106, 0.15); color: var(--bd-red); }
+
+
+/* ─── Stat Cards ─────────────────────────────────────────────────*/
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.2rem;
+}
+.stat-value.income  { color: var(--bd-green); }
+.stat-value.expense { color: var(--bd-red); }
+.stat-value.saving  { color: var(--bd-purple); }
+
+.stat-meta { font-size: 0.75rem; color: var(--bd-muted); }
+
+.stat-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+.stat-icon.green  { background: rgba(78, 227, 160, 0.12); color: var(--bd-green); }
+.stat-icon.red    { background: rgba(240, 106, 106, 0.12); color: var(--bd-red); }
+.stat-icon.purple { background: rgba(172, 182, 229, 0.12); color: var(--bd-purple); }
+
+
+/* ─── Chart Wrappers ─────────────────────────────────────────────*/
+.chart-wrap    { position: relative; height: 220px; }
+.chart-wrap-sm { position: relative; height: 190px; }
+.chart-wrap-lg { position: relative; height: 260px; }
+
+
+/* ─── Orçamento (progress bars) ─────────────────────────────────*/
+.cat-row { margin-bottom: 0.9rem; }
+.cat-row:last-child { margin-bottom: 0; }
+
+.cat-label {
+  font-size: 0.82rem;
+  color: var(--bd-text);
+  margin-bottom: 0.3rem;
+  display: flex;
+  justify-content: space-between;
+}
+.cat-label span { color: var(--bd-muted); }
+
+.progress { height: 6px; background: rgba(255, 255, 255, 0.07); border-radius: 99px; }
+.progress-bar { border-radius: 99px; }
+
+
+/* ─── Transactions list ──────────────────────────────────────────*/
+.tx-item {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--bd-border);
+}
+.tx-item:last-child { border-bottom: none; }
+
+.tx-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.tx-info { flex: 1; min-width: 0; }
+.tx-info strong {
+  display: block;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tx-info small { font-size: 0.72rem; color: var(--bd-muted); }
+
+.tx-amount {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.tx-amount.credit { color: var(--bd-green); }
+.tx-amount.debit  { color: var(--bd-red); }
+
+
+/* ─── Metas ──────────────────────────────────────────────────────*/
+.goal-item { margin-bottom: 1.2rem; }
+.goal-item:last-child { margin-bottom: 0; }
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.goal-name { font-size: 0.85rem; }
+.goal-pct {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.82rem;
+  color: var(--bd-teal);
+  font-weight: 700;
+}
+.goal-sub { font-size: 0.72rem; color: var(--bd-muted); margin-top: 0.25rem; }
+
+
+/* ─── Section titles / links ─────────────────────────────────────*/
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--bd-text);
+  margin-bottom: 0;
+}
+.section-link {
+  font-size: 0.78rem;
+  color: var(--bd-teal);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.section-link:hover { color: var(--bd-teal2); }
+
+
+/* ─── Bottom Nav (mobile) ────────────────────────────────────────*/
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 64px;
+  background: var(--bd-navy2);
+  border-top: 1px solid var(--bd-border);
+  z-index: 100;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 0.5rem;
+}
+
+.nav-btn {
+  background: none; border: none;
+  color: var(--bd-muted);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+  font-size: 0.62rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  padding: 0.3rem 1rem;
+  border-radius: 12px;
+  transition: color 0.2s;
+}
+.nav-btn.active,
+.nav-btn:hover { color: var(--bd-teal); }
+
+.nav-btn-add {
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--bd-teal), var(--bd-teal2));
+  border: none;
+  color: var(--bd-navy);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(78, 227, 196, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.nav-btn-add:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 24px rgba(78, 227, 196, 0.5);
+}
+
+
+/* ─── Action Sheet ───────────────────────────────────────────────*/
+.action-sheet-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  backdrop-filter: blur(3px);
+}
+.action-sheet-overlay.active { display: block; }
+
+.action-sheet {
+  position: fixed;
+  bottom: -100%;
+  left: 0; right: 0;
+  background: var(--bd-navy2);
+  border-top: 1px solid var(--bd-border);
+  border-radius: 24px 24px 0 0;
+  padding: 1.5rem 1.5rem 2.5rem;
+  z-index: 300;
+  transition: bottom 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.action-sheet.active { bottom: 0; }
+
+.action-sheet h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+.action-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--bd-border);
+  border-radius: 14px;
+  color: var(--bd-text);
+  padding: 1rem 0.75rem;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.action-btn:hover {
+  background: rgba(78, 227, 196, 0.08);
+  border-color: rgba(78, 227, 196, 0.3);
+  color: var(--bd-teal);
+}
+.action-btn i { font-size: 1.4rem; }
+
+
+/* ─── FAB (desktop) ──────────────────────────────────────────────*/
+.fab {
+  position: fixed;
+  bottom: 2rem; right: 2rem;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--bd-teal), var(--bd-teal2));
+  border: none;
+  color: var(--bd-navy);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(78, 227, 196, 0.4);
+  z-index: 90;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 30px rgba(78, 227, 196, 0.5);
+}
+
+
+/* ─── Responsividade ─────────────────────────────────────────────
+   Nota: a maior parte do layout responsivo é feita pelas classes
+   do Bootstrap (col-*, d-none, d-lg-flex etc.) no próprio HTML.
+   Aqui ficam apenas os overrides de componentes customizados.
+   ─────────────────────────────────────────────────────────────── */
+@media (max-width: 991.98px) {
+  .sidebar      { transform: translateX(-100%); }
+  .main-content { margin-left: 0; padding: 1rem 1rem 5rem; }
+  .topbar       { display: flex; }
+  .bottom-nav   { display: flex; }
+  .fab          { display: none; }
+}
+
+@media (min-width: 992px) {
+  .topbar     { display: none; }
+  .bottom-nav { display: none; }
+  .action-sheet-overlay,
+  .action-sheet { display: none !important; }
+}
+
+
+/* ─── Scrollbar customizada ──────────────────────────────────────*/
+::-webkit-scrollbar       { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 99px; }

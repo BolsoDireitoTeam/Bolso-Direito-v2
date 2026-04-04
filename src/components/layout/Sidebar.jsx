@@ -1,0 +1,37 @@
+import { useLocation, Link } from 'react-router-dom'
+import { sidebarNavItems } from '../../data/mockData'
+
+function Sidebar() {
+  const location = useLocation()
+
+  return (
+    <aside className="sidebar">
+      <div className="sidebar-logo">
+        <i className="bi bi-wallet2"></i>Bolso<span>Direito</span>
+      </div>
+
+      <ul className="sidebar-nav">
+        {sidebarNavItems.map(item => (
+          <li key={item.path}>
+            <Link
+              to={item.path}
+              className={location.pathname === item.path ? 'active' : ''}
+            >
+              <i className={`bi ${item.icon}`}></i> {item.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <div className="sidebar-user">
+        <div className="sidebar-avatar">US</div>
+        <div className="sidebar-user-info">
+          <strong>Usuário</strong>
+          <small>usuario@email.com</small>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+export default Sidebar
