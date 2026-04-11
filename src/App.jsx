@@ -1,23 +1,24 @@
 import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { investmentsData } from './data/mockData'
- 
+
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import BottomNav from './components/layout/BottomNav'
 import Fab from './components/layout/Fab'
 import ActionSheet from './components/layout/ActionSheet'
- 
+
 import Login from './pages/Login'
 import Register from './pages/Register'
 import VisaoGeral from './pages/VisaoGeral'
 import User from './pages/User'
+import EditarInfoPessoal from './pages/EditarInfoPessoal'
 import InvestimentosOverview from './pages/InvestimentosOverview'
 import CarteiraInvestimentos from './pages/CarteiraInvestimentos'
 import NovoInvestimento from './pages/NovoInvestimento'
 import SimulacaoInvestimento from './pages/SimulacaoInvestimento'
- 
- 
+
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
     () => localStorage.getItem('bd_logado') === 'true'
@@ -30,10 +31,10 @@ function App() {
     if (saved) return JSON.parse(saved)
     return investmentsData
   })
-  
+
   const [actionSheetOpen, setActionSheetOpen] = useState(false)
   const toggleMenu = () => setActionSheetOpen(prev => !prev)
- 
+
   const handleLogin = (dados) => {
     const novoUsuario = { nome: dados.username, saldo: 0, avatar: null }
     setIsLoggedIn(true)
@@ -42,12 +43,18 @@ function App() {
     localStorage.setItem('bd_usuario', JSON.stringify(novoUsuario))
   }
 
+  const handleSalvarUsuario = (dadosAtualizados) => {
+    const atualizado = { ...usuario, ...dadosAtualizados }
+    setUsuario(atualizado)
+    localStorage.setItem('bd_usuario', JSON.stringify(atualizado))
+  }
+
   const addInvestimento = (novo) => {
     const updated = [...investimentosList, novo]
     setInvestimentosList(updated)
     localStorage.setItem('bd_investimentos', JSON.stringify(updated))
   }
- 
+
   return (
     <Routes>
       {/* Rota do login — sem sidebar/topbar */}
@@ -59,7 +66,7 @@ function App() {
             : <Login onLogin={handleLogin} />
         }
       />
- 
+
       {/* Rota do registro — sem sidebar/topbar */}
       <Route
         path="/registro"
@@ -69,7 +76,7 @@ function App() {
             : <Register onLogin={handleLogin} />
         }
       />
- 
+
       {/* Rotas do app — com layout completo */}
       <Route
         path="/*"
@@ -84,6 +91,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<VisaoGeral onAddClick={toggleMenu} usuario={usuario} />} />
                     <Route path="/perfil" element={<User usuario={usuario} />} />
+                    <Route path="/editar-dados-cadastrais" element={<EditarInfoPessoal usuario={usuario} onSalvar={handleSalvarUsuario} />} />
                     <Route path="/investimentos" element={<InvestimentosOverview />} />
                     <Route path="/investimentos/carteira" element={<CarteiraInvestimentos onAddClick={toggleMenu} investimentos={investimentosList} />} />
                     <Route path="/investimentos/novo" element={<NovoInvestimento onAdd={addInvestimento} />} />
@@ -100,5 +108,5 @@ function App() {
     </Routes>
   )
 }
- 
+
 export default App
