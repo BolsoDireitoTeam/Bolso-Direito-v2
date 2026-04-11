@@ -13,6 +13,7 @@ import Register from './pages/Register'
 import VisaoGeral from './pages/VisaoGeral'
 import User from './pages/User'
 import EditarInfoPessoal from './pages/EditarInfoPessoal'
+import EditarDadosFinanceiros from './pages/EditarDadosFinanceiros'
 import InvestimentosOverview from './pages/InvestimentosOverview'
 import CarteiraInvestimentos from './pages/CarteiraInvestimentos'
 import NovoInvestimento from './pages/NovoInvestimento'
@@ -25,6 +26,9 @@ function App() {
   )
   const [usuario, setUsuario] = useState(
     () => JSON.parse(localStorage.getItem('bd_usuario')) ?? { nome: "Usuário", saldo: 0, avatar: null }
+  )
+  const [financeiro, setFinanceiro] = useState(
+    () => JSON.parse(localStorage.getItem('bd_financeiro')) ?? null
   )
   const [investimentosList, setInvestimentosList] = useState(() => {
     const saved = localStorage.getItem('bd_investimentos')
@@ -47,6 +51,11 @@ function App() {
     const atualizado = { ...usuario, ...dadosAtualizados }
     setUsuario(atualizado)
     localStorage.setItem('bd_usuario', JSON.stringify(atualizado))
+  }
+
+  const handleSalvarFinanceiro = (dadosFinanceiros) => {
+    setFinanceiro(dadosFinanceiros)
+    localStorage.setItem('bd_financeiro', JSON.stringify(dadosFinanceiros))
   }
 
   const addInvestimento = (novo) => {
@@ -92,6 +101,7 @@ function App() {
                     <Route path="/" element={<VisaoGeral onAddClick={toggleMenu} usuario={usuario} />} />
                     <Route path="/perfil" element={<User usuario={usuario} />} />
                     <Route path="/editar-dados-cadastrais" element={<EditarInfoPessoal usuario={usuario} onSalvar={handleSalvarUsuario} />} />
+                    <Route path="/editar-dados-financeiros" element={<EditarDadosFinanceiros financeiro={financeiro} onSalvar={handleSalvarFinanceiro} />} />
                     <Route path="/investimentos" element={<InvestimentosOverview />} />
                     <Route path="/investimentos/carteira" element={<CarteiraInvestimentos onAddClick={toggleMenu} investimentos={investimentosList} />} />
                     <Route path="/investimentos/novo" element={<NovoInvestimento onAdd={addInvestimento} />} />
