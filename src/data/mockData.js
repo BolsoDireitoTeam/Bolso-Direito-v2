@@ -92,11 +92,8 @@ export const chartData = {
 // ── Navegação Sidebar ───────────────────────────────────────────
 export const sidebarNavItems = [
   { label: 'Visão Geral', icon: 'bi-grid-1x2',        path: '/' },
-  { label: 'Transações',  icon: 'bi-arrow-left-right', path: '/transacoes' },
-  { label: 'Faturas',     icon: 'bi-credit-card',      path: '/faturas' },
-  { label: 'Relatórios',  icon: 'bi-bar-chart-line',   path: '/relatorios' },
   { label: 'Metas',       icon: 'bi-bullseye',         path: '/metas' },
-  { label: 'Importar',    icon: 'bi-cloud-upload',     path: '/importar' },
+  { label: 'Investimentos',icon: 'bi-graph-up-arrow',  path: '/investimentos' },
 ]
 
 // ── Ações do Action Sheet ───────────────────────────────────────
@@ -105,4 +102,12 @@ export const actionSheetActions = [
   { label: 'Novo Gasto',       icon: 'bi-dash-circle' },
   { label: 'Importar Extrato', icon: 'bi-upload' },
   { label: 'Importar Fatura',  icon: 'bi-credit-card-2-front' },
+]
+
+// ── Investimentos ───────────────────────────────────────────────
+export const investmentsData = [
+  { id: 1, name: 'Tesouro Selic 2029', type: 'Renda Fixa', value: 'R$ 15.000,00', returnLastWeek: '+R$ 32,50', returnPct: '+0.21%', color: 'var(--bd-teal)', icon: 'bi-safe' },
+  { id: 2, name: 'Fundo Imobiliário MXRF11', type: 'Renda Variável', value: 'R$ 3.450,00', returnLastWeek: '+R$ 15,30', returnPct: '+0.45%', color: 'var(--bd-purple)', icon: 'bi-buildings' },
+  { id: 3, name: 'Ações PETR4', type: 'Renda Variável', value: 'R$ 2.100,00', returnLastWeek: '-R$ 45,00', returnPct: '-2.10%', color: 'var(--bd-red)', icon: 'bi-graph-down-arrow' },
+  { id: 4, name: 'CDB Banco Inter', type: 'Renda Fixa', value: 'R$ 8.200,00', returnLastWeek: '+R$ 18,20', returnPct: '+0.22%', color: 'var(--bd-green)', icon: 'bi-bank' },
 ]

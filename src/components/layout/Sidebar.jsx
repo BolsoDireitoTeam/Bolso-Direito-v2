@@ -1,8 +1,9 @@
-import { useLocation, Link } from 'react-router-dom'
+import { useLocation, Link, useNavigate } from 'react-router-dom'
 import { sidebarNavItems } from '../../data/mockData'
 
 function Sidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
 
   return (
     <aside className="sidebar">
@@ -23,7 +24,7 @@ function Sidebar() {
         ))}
       </ul>
 
-      <div className="sidebar-user">
+      <div className="sidebar-user" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
         <div className="sidebar-avatar">US</div>
         <div className="sidebar-user-info">
           <strong>Usuário</strong>

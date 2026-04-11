@@ -11,6 +11,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import VisaoGeral from './pages/VisaoGeral'
 import User from './pages/User'
+import Investimentos from './pages/Investimentos'
  
  
 function App() {
@@ -67,6 +68,7 @@ function App() {
                   <Routes>
                     <Route path="/" element={<VisaoGeral onAddClick={toggleMenu} />} />
                     <Route path="/perfil" element={<User usuario={usuario} />} />
+                    <Route path="/investimentos" element={<Investimentos onAddClick={toggleMenu} />} />
                   </Routes>
                 </main>
                 <Fab onClick={toggleMenu} />

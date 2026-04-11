@@ -70,13 +70,17 @@ body::before {
 .sidebar-logo {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 1.4rem;
+  font-size: 1rem;
   color: var(--bd-teal);
   letter-spacing: -0.5px;
   margin-bottom: 2.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 .sidebar-logo span { color: var(--bd-text); }
 

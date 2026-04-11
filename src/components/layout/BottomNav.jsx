@@ -113,7 +113,7 @@ function BottomNav({ onAddClick }) {
           <i className="bi bi-plus-lg" style={{ fontSize: '1.3rem' }}></i>
         </button>
 
-        <button className="nav-btn">
+        <button className={`nav-btn${location.pathname === '/perfil' ? ' active' : ''}`} onClick={() => navigate('/perfil')}>
           <i className="bi bi-person" style={{ fontSize: '1.2rem' }}></i>
           <span>Perfil</span>
         </button>
