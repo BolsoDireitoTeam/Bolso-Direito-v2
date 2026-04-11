@@ -1,9 +1,13 @@
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import { sidebarNavItems } from '../../data/mockData'
 
-function Sidebar() {
+function Sidebar({ usuario }) {
   const location = useLocation()
   const navigate = useNavigate()
+
+  const defaultNome = usuario?.nome || 'Usuário'
+  const initials = defaultNome.substring(0, 2).toUpperCase()
+  const defaultEmail = usuario?.email || `${defaultNome.replace(/\s+/g, '').toLowerCase()}@bolsodireito.com`
 
   return (
     <aside className="sidebar">
@@ -16,7 +20,7 @@ function Sidebar() {
           <li key={item.path}>
             <Link
               to={item.path}
-              className={location.pathname === item.path ? 'active' : ''}
+              className={location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)) ? 'active' : ''}
             >
               <i className={`bi ${item.icon}`}></i> {item.label}
             </Link>
@@ -25,10 +29,14 @@ function Sidebar() {
       </ul>
 
       <div className="sidebar-user" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
-        <div className="sidebar-avatar">US</div>
+        {usuario?.avatar ? (
+          <img src={usuario.avatar} alt="Avatar" className="sidebar-avatar" style={{width: '32px', height: '32px', borderRadius: '50%', border: 'none', objectFit: 'cover'}} />
+        ) : (
+          <div className="sidebar-avatar">{initials}</div>
+        )}
         <div className="sidebar-user-info">
-          <strong>Usuário</strong>
-          <small>usuario@email.com</small>
+          <strong>{defaultNome}</strong>
+          <small>{defaultEmail}</small>
         </div>
       </div>
     </aside>

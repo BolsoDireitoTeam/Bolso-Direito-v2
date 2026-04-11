@@ -30,7 +30,7 @@ function BottomNav({ onAddClick }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const isPainelActive = ['/', '/metas', '/investimentos'].includes(location.pathname)
+  const isPainelActive = ['/', '/metas', '/investimentos'].some(path => location.pathname === path || (path !== '/' && location.pathname.startsWith(path)))
 
   const handlePainelItem = (path) => {
     setPainelOpen(false)
@@ -55,11 +55,11 @@ function BottomNav({ onAddClick }) {
               className="action-btn"
               style={{
                 position: 'relative',
-                opacity: location.pathname === item.path ? 1 : undefined,
-                background: location.pathname === item.path
+                opacity: location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)) ? 1 : undefined,
+                background: location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))
                   ? 'rgba(78,227,196,0.1)'
                   : undefined,
-                border: location.pathname === item.path
+                border: location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))
                   ? '1px solid rgba(78,227,196,0.25)'
                   : undefined,
               }}

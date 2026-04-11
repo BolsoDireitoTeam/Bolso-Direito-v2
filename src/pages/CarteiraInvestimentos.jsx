@@ -1,35 +1,52 @@
+import { Link } from 'react-router-dom'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
-import { investmentsData } from '../data/mockData'
 
-function Investimentos({ onAddClick }) {
+function CarteiraInvestimentos({ onAddClick, investimentos }) {
   return (
     <>
       <PageHeader
-        greeting="Sua Carteira"
-        title="Investimentos"
-        dateBadge="Agosto 2025"
+        greeting="Minha Carteira"
+        title="Ativos Actuais"
+        dateBadge="Abril 2026"
       >
-        <button
-          className="btn d-none d-lg-flex align-items-center gap-2"
-          style={{
-            background: 'linear-gradient(135deg, #f4c864, #f0a830)',
-            border: 'none',
-            color: '#1a1200',
-            borderRadius: '12px',
-            fontSize: '0.85rem',
-            padding: '0.5rem 1rem',
-            fontWeight: '600'
-          }}
-          onClick={onAddClick}
-        >
-          <i className="bi bi-star-fill"></i> Carteira PRO
-        </button>
+        <div className="d-flex align-items-center gap-2">
+          <Link
+            to="/investimentos/novo"
+            className="btn d-flex align-items-center gap-2"
+            style={{
+              background: 'rgba(78,227,196,0.1)',
+              border: '1px solid rgba(78,227,196,0.3)',
+              color: 'var(--bd-teal)',
+              borderRadius: '12px',
+              fontSize: '0.85rem',
+              padding: '0.5rem 1rem',
+              textDecoration: 'none'
+            }}
+          >
+            <i className="bi bi-plus-lg"></i> Novo
+          </Link>
+          <button
+            className="btn d-none d-lg-flex align-items-center gap-2"
+            style={{
+              background: 'linear-gradient(135deg, #f4c864, #f0a830)',
+              border: 'none',
+              color: '#1a1200',
+              borderRadius: '12px',
+              fontSize: '0.85rem',
+              padding: '0.5rem 1rem',
+              fontWeight: '600'
+            }}
+            onClick={onAddClick}
+          >
+            <i className="bi bi-star-fill"></i> Carteira PRO
+          </button>
+        </div>
       </PageHeader>
 
       {/* Row for cards (Responsive Mobile-first) */}
       <div className="row g-3">
-        {investmentsData.map((inv) => {
+        {investimentos.map((inv) => {
           const isPositive = inv.returnLastWeek.includes('+');
           return (
             <div className="col-12 col-md-6 col-lg-4" key={inv.id}>
@@ -87,4 +104,4 @@ function Investimentos({ onAddClick }) {
   )
 }
 
-export default Investimentos
+export default CarteiraInvestimentos

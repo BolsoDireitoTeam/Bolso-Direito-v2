@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { investmentsData } from './data/mockData'
  
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
@@ -11,7 +12,10 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import VisaoGeral from './pages/VisaoGeral'
 import User from './pages/User'
-import Investimentos from './pages/Investimentos'
+import InvestimentosOverview from './pages/InvestimentosOverview'
+import CarteiraInvestimentos from './pages/CarteiraInvestimentos'
+import NovoInvestimento from './pages/NovoInvestimento'
+import SimulacaoInvestimento from './pages/SimulacaoInvestimento'
  
  
 function App() {
@@ -21,6 +25,12 @@ function App() {
   const [usuario, setUsuario] = useState(
     () => JSON.parse(localStorage.getItem('bd_usuario')) ?? { nome: "Usuário", saldo: 0, avatar: null }
   )
+  const [investimentosList, setInvestimentosList] = useState(() => {
+    const saved = localStorage.getItem('bd_investimentos')
+    if (saved) return JSON.parse(saved)
+    return investmentsData
+  })
+  
   const [actionSheetOpen, setActionSheetOpen] = useState(false)
   const toggleMenu = () => setActionSheetOpen(prev => !prev)
  
@@ -30,6 +40,12 @@ function App() {
     setUsuario(novoUsuario)
     localStorage.setItem('bd_logado', 'true')
     localStorage.setItem('bd_usuario', JSON.stringify(novoUsuario))
+  }
+
+  const addInvestimento = (novo) => {
+    const updated = [...investimentosList, novo]
+    setInvestimentosList(updated)
+    localStorage.setItem('bd_investimentos', JSON.stringify(updated))
   }
  
   return (
@@ -62,13 +78,16 @@ function App() {
             ? <Navigate to="/login" replace />
             : (
               <>
-                <Sidebar />
+                <Sidebar usuario={usuario} />
                 <Topbar />
                 <main className="main-content">
                   <Routes>
-                    <Route path="/" element={<VisaoGeral onAddClick={toggleMenu} />} />
+                    <Route path="/" element={<VisaoGeral onAddClick={toggleMenu} usuario={usuario} />} />
                     <Route path="/perfil" element={<User usuario={usuario} />} />
-                    <Route path="/investimentos" element={<Investimentos onAddClick={toggleMenu} />} />
+                    <Route path="/investimentos" element={<InvestimentosOverview />} />
+                    <Route path="/investimentos/carteira" element={<CarteiraInvestimentos onAddClick={toggleMenu} investimentos={investimentosList} />} />
+                    <Route path="/investimentos/novo" element={<NovoInvestimento onAdd={addInvestimento} />} />
+                    <Route path="/investimentos/simulacao" element={<SimulacaoInvestimento />} />
                   </Routes>
                 </main>
                 <Fab onClick={toggleMenu} />

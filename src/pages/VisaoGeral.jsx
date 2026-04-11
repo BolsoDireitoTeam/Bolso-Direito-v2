@@ -19,30 +19,15 @@ import {
   chartData,
 } from '../data/mockData'
 
-function VisaoGeral({ onAddClick }) {
+function VisaoGeral({ onAddClick, usuario }) {
   return (
     <>
       {/* Page Header */}
       <PageHeader
-        greeting="Olá, Usuário 👋"
+        greeting={`Olá, ${usuario ? usuario.nome : 'Usuário'}!`}
         title="Visão Geral"
-        dateBadge="Agosto 2025"
+        dateBadge="Abril 2026"
       >
-        {/* Desktop add button */}
-        <button
-          className="btn d-none d-lg-flex align-items-center gap-2"
-          style={{
-            background: 'rgba(78,227,196,0.1)',
-            border: '1px solid rgba(78,227,196,0.3)',
-            color: 'var(--bd-teal)',
-            borderRadius: '12px',
-            fontSize: '0.85rem',
-            padding: '0.5rem 1rem',
-          }}
-          onClick={onAddClick}
-        >
-          <i className="bi bi-plus-lg"></i> Registrar
-        </button>
       </PageHeader>
 
       {/* ── Row 1: Balance + Stats ── */}

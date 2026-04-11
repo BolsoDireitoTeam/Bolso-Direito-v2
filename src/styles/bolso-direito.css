@@ -4,6 +4,7 @@
    Descrição: Estilos globais do app. Complementa Bootstrap 5.
    Fontes necessárias: Syne (display) + DM Sans (body)
    ================================================================ */
+@import './auth-user.css';
 
 /* ─── Design Tokens ──────────────────────────────────────────────
    Altere aqui para mudar o tema em todo o app.
@@ -441,16 +442,25 @@ body::before {
 
 .action-sheet {
   position: fixed;
-  bottom: -100%;
-  left: 0; right: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -40%) scale(0.95);
+  opacity: 0;
+  visibility: hidden;
+  width: 90%;
+  max-width: 360px;
   background: var(--bd-navy2);
-  border-top: 1px solid var(--bd-border);
-  border-radius: 24px 24px 0 0;
-  padding: 1.5rem 1.5rem 2.5rem;
+  border: 1px solid var(--bd-border);
+  border-radius: 24px;
+  padding: 2rem 1.5rem;
   z-index: 300;
-  transition: bottom 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.action-sheet.active { bottom: 0; }
+.action-sheet.active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  visibility: visible;
+}
 
 .action-sheet h3 {
   font-family: 'Syne', sans-serif;
@@ -522,8 +532,6 @@ body::before {
 @media (min-width: 992px) {
   .topbar     { display: none; }
   .bottom-nav { display: none; }
-  .action-sheet-overlay,
-  .action-sheet { display: none !important; }
 }
 
 
