@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFinance } from "../hooks/useFinance";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -256,6 +257,12 @@ function pctColor(val) {
 /* ── Componente ── */
 export default function EditarDadosFinanceiros({ financeiro, onSalvar }) {
   const navigate = useNavigate();
+  const { configuracoes, salvarConfiguracoes, mostrarToast } = useFinance();
+
+  /* Configurações do Cartão (Issue #21) */
+  const [ccVencimento, setCcVencimento] = useState(configuracoes.diaVencimentoCartao ?? "");
+  const [ccLimite, setCcLimite] = useState(configuracoes.limiteCartao ?? "");
+  const [ccRecebimento, setCcRecebimento] = useState(configuracoes.diaRecebimentoSalario ?? "");
 
   /* Ganhos e gastos dinâmicos */
   const [ganhos, setGanhos] = useState(
@@ -289,6 +296,13 @@ export default function EditarDadosFinanceiros({ financeiro, onSalvar }) {
   /* Toast */
   const [toast, setToast] = useState({ msg: "", type: "" });
 
+  /* Sincronizar configurações do contexto caso mudem */
+  useEffect(() => {
+    if (configuracoes.diaVencimentoCartao) setCcVencimento(configuracoes.diaVencimentoCartao);
+    if (configuracoes.limiteCartao) setCcLimite(configuracoes.limiteCartao);
+    if (configuracoes.diaRecebimentoSalario) setCcRecebimento(configuracoes.diaRecebimentoSalario);
+  }, [configuracoes]);
+
   /* ── Resumo calculado ── */
   const totalGanhos  = ganhos.reduce((s, g) => s + parseVal(g.valor), 0);
   const totalGastos  = gastos.reduce((s, g) => s + parseVal(g.valor), 0);
@@ -309,11 +323,19 @@ export default function EditarDadosFinanceiros({ financeiro, onSalvar }) {
   /* ── Salvar ── */
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Salvar configurações globais (Issue #21)
+    salvarConfiguracoes({
+      diaVencimentoCartao: parseInt(ccVencimento) || null,
+      limiteCartao: parseFloat(String(ccLimite).replace(/[^\d.]/g, "")) || 0,
+      diaRecebimentoSalario: parseInt(ccRecebimento) || null
+    });
+
     if (typeof onSalvar === "function") {
       onSalvar({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta });
     }
-    setToast({ msg: "Dados financeiros salvos com sucesso!", type: "success" });
-    setTimeout(() => setToast({ msg: "", type: "" }), 3000);
+
+    mostrarToast("Dados financeiros salvos com sucesso!", "success");
   };
 
   /* ── Render ── */
@@ -458,6 +480,36 @@ export default function EditarDadosFinanceiros({ financeiro, onSalvar }) {
                     <div className="edf-pct-fill" style={{ width: `${pct}%`, background: pctColor(pct) }} />
                   </div>
                   <span className="edf-pct-label">{pct}%</span>
+                </div>
+              </div>
+
+
+              {/* Configurações do Cartão e Salário (Issue #21) */}
+              <div className="edf-card">
+                <p className="edf-section-title mb-3">⚙️ Configurações do Cartão e Salário</p>
+
+                <label className="edf-label">Dia de Vencimento do Cartão (1-28)</label>
+                <div className="edf-input-wrap">
+                  <i className="bi bi-calendar-event edf-prefix-icon" />
+                  <input className="edf-input" type="number" min="1" max="28" placeholder="10"
+                    value={ccVencimento} onChange={(e) => setCcVencimento(e.target.value)} />
+                  <i className="bi bi-pencil edf-pencil-icon" />
+                </div>
+
+                <label className="edf-label">Limite do Cartão de Crédito</label>
+                <div className="edf-input-wrap">
+                  <i className="bi bi-credit-card-2-front edf-prefix-icon" />
+                  <input className="edf-input" type="text" placeholder="R$ 0,00"
+                    value={ccLimite} onChange={(e) => setCcLimite(e.target.value)} />
+                  <i className="bi bi-pencil edf-pencil-icon" />
+                </div>
+
+                <label className="edf-label">Dia de Recebimento do Salário (1-28)</label>
+                <div className="edf-input-wrap no-mb">
+                  <i className="bi bi-cash-stack edf-prefix-icon" />
+                  <input className="edf-input" type="number" min="1" max="28" placeholder="5"
+                    value={ccRecebimento} onChange={(e) => setCcRecebimento(e.target.value)} />
+                  <i className="bi bi-pencil edf-pencil-icon" />
                 </div>
               </div>
 

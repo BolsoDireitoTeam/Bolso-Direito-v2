@@ -1,57 +1,88 @@
 import { useNavigate } from "react-router-dom";
+import { useFinance } from "../hooks/useFinance";
+import { moeda } from "../utils/format";
 
 export default function User({ usuario }) {
   const navigate = useNavigate();
+  const { configuracoes, salvarConfiguracoes, saldo, mostrarToast } = useFinance();
 
   const nome = usuario?.nome ?? "Usuário";
-  const saldo = usuario?.saldo ?? 0;
   const avatar = usuario?.avatar ??
     `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=4ee3c4&color=0d1525&size=200&bold=true`;
 
-  const saldoFormatado = saldo.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  const isPremium = configuracoes.plano === 'pago';
+
+  const togglePlano = () => {
+    const novoPlano = isPremium ? 'gratuito' : 'pago';
+    salvarConfiguracoes({ plano: novoPlano });
+    mostrarToast(isPremium ? 'Plano alterado para Gratuito.' : 'Upgrade para PRO realizado! 🌟');
+  };
 
   return (
-    <>
-      <div className="user-wrapper">
+    <div className="user-wrapper">
+      <p className="greeting">Configurações</p>
+      <h2 className="user-title">Meu Perfil</h2>
 
-        <p className="greeting">Configurações</p>
-        <h1 className="user-title">Perfil</h1>
-
-        <div className="profile-card">
-
+      <div className="profile-card">
+        <div className="position-relative">
           <img
             src={avatar}
             alt="Foto de Perfil"
             className="profile-avatar-img"
           />
-
-          <div className="profile-name">{nome}</div>
-
-          <div>
-            <p className="profile-balance-label">Saldo Disponível</p>
-            <p className="profile-balance-value">{saldoFormatado}</p>
+          <div className={`plan-badge ${isPremium ? 'premium' : 'free'}`}>
+            {isPremium ? <i className="bi bi-star-fill me-1"></i> : null}
+            {isPremium ? 'PRO' : 'FREE'}
           </div>
+        </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%", marginTop: "0.5rem" }}>
-            <button
-              className="btn-bd btn-bd-primary"
-              onClick={() => navigate("/editar-dados-cadastrais")}
-            >
-              Atualizar Dados Cadastrais
-            </button>
-            <button
-              className="btn-bd btn-bd-secondary"
-              onClick={() => navigate("/editar-dados-financeiros")}
-            >
-              Atualizar Dados Financeiros
-            </button>
-          </div>
+        <div className="profile-name">{nome}</div>
 
+        <div className="mb-4">
+          <p className="profile-balance-label">Saldo Disponível</p>
+          <p className="profile-balance-value">{moeda(saldo)}</p>
+        </div>
+
+        <div className="d-flex flex-column gap-2 w-100">
+          <button
+            className="btn-bd-primary py-3"
+            onClick={() => navigate("/editar-dados-cadastrais")}
+          >
+            <i className="bi bi-person-gear me-2"></i> Atualizar Dados Cadastrais
+          </button>
+          
+          <button
+            className="btn-bd-secondary py-3"
+            onClick={() => navigate("/editar-dados-financeiros")}
+          >
+            <i className="bi bi-gear me-2"></i> Configurações Financeiras
+          </button>
+
+          <button
+            className={`btn-bd-outline py-3 mt-2 ${isPremium ? 'text-muted' : 'text-teal'}`}
+            style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)' }}
+            onClick={togglePlano}
+          >
+            <i className={`bi bi-${isPremium ? 'arrow-down-circle' : 'patch-check'} me-2`}></i>
+            {isPremium ? 'Reverter para Plano Gratuito' : 'Fazer Upgrade para PRO'}
+          </button>
         </div>
       </div>
-    </>
+
+      <style>{`
+        .plan-badge {
+          position: absolute;
+          bottom: 5px; right: 5px;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 0.7rem;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+        }
+        .plan-badge.free { background: #333; color: #aaa; }
+        .plan-badge.premium { background: var(--bd-teal); color: #0d1525; box-shadow: 0 0 15px rgba(78, 227, 196, 0.4); }
+        .btn-bd-outline { background: transparent; border-radius: 14px; font-weight: 600; cursor: pointer; }
+      `}</style>
+    </div>
   );
 }
