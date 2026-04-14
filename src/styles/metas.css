@@ -1,0 +1,618 @@
+/* ================================================================
+   METAS — Estilos para Metas, NovaMeta, MetaDetalhes
+   ================================================================ */
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.meta-btn-nova {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--bd-teal, #4ee3c4), #2b9c84);
+  color: var(--bd-navy, #0d1525);
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(78, 227, 196, 0.25);
+}
+.meta-btn-nova:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(78, 227, 196, 0.35);
+}
+
+.meta-btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.meta-btn-back:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ── Summary Cards ─────────────────────────────────────────── */
+.meta-summary-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 1.1rem;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.meta-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+.meta-summary-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin: 0 auto 0.6rem;
+}
+.meta-summary-label {
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+}
+.meta-summary-value {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-family: 'Syne', sans-serif;
+}
+
+/* ── Empty State ───────────────────────────────────────────── */
+.meta-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+.meta-empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+.meta-empty p {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+/* ── Meta Card (Grid) ──────────────────────────────────────── */
+.meta-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 1.4rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+}
+.meta-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.meta-card-icon {
+  font-size: 2rem;
+  margin-bottom: 0.6rem;
+}
+.meta-card-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bd-text, #fff);
+  margin-bottom: 0.3rem;
+}
+.meta-card-values {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 0.75rem;
+}
+.meta-card-pct {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0.4rem;
+  text-align: right;
+}
+
+/* ── Badge Complete ────────────────────────────────────────── */
+.meta-badge-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(78, 227, 160, 0.15);
+  color: var(--bd-green, #4ee3a0);
+  border: 1px solid rgba(78, 227, 160, 0.25);
+}
+
+/* ── Form ──────────────────────────────────────────────────── */
+.meta-form-label {
+  display: block;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.meta-form-label:first-child {
+  margin-top: 0;
+}
+.meta-form-input {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.meta-form-input:focus {
+  border-color: var(--bd-teal, #4ee3c4);
+}
+.meta-form-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+.meta-form-error {
+  margin-top: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  background: rgba(240, 106, 106, 0.12);
+  border: 1px solid rgba(240, 106, 106, 0.25);
+  color: var(--bd-red, #f06a6a);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.meta-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* ── Icon / Emoji Grid ─────────────────────────────────────── */
+.meta-emoji-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.meta-emoji-grid-compact {
+  gap: 0.35rem;
+}
+.meta-emoji-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: rgba(255, 255, 255, 0.5);
+}
+.meta-emoji-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+.meta-emoji-btn.selected {
+  border-color: var(--bd-teal, #4ee3c4);
+  background: rgba(78, 227, 196, 0.1);
+  color: var(--bd-teal, #4ee3c4);
+  box-shadow: 0 0 10px rgba(78, 227, 196, 0.2);
+}
+
+/* ── Color Grid ────────────────────────────────────────────── */
+.meta-color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.meta-color-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.meta-color-btn:hover {
+  transform: scale(1.15);
+}
+.meta-color-btn.selected {
+  border-color: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+  transform: scale(1.15);
+}
+
+/* ── Section Label ─────────────────────────────────────────── */
+.meta-section-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bd-text, #fff);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Preview (NovaMeta) ────────────────────────────────────── */
+.meta-preview-wrap {
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+}
+.meta-preview-icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+}
+.meta-preview-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--bd-text, #fff);
+  margin-bottom: 0.25rem;
+}
+.meta-preview-target {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--bd-teal, #4ee3c4);
+  font-family: 'Syne', sans-serif;
+  margin-bottom: 1rem;
+}
+.meta-preview-bar {
+  max-width: 260px;
+  margin: 0 auto 0.75rem;
+}
+.meta-preview-aporte {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── Progress Hero (MetaDetalhes) ──────────────────────────── */
+.meta-progress-hero {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.meta-progress-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+}
+.meta-progress-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--bd-text, #fff);
+  margin-bottom: 0.3rem;
+}
+.meta-progress-amount {
+  font-size: 2rem;
+  font-weight: 800;
+  font-family: 'Syne', sans-serif;
+}
+.meta-progress-target {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 1rem;
+}
+.meta-progress-bar-wrap {
+  max-width: 280px;
+  margin: 0 auto;
+}
+.meta-progress-pct {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-top: 0.6rem;
+}
+
+/* ── Action Row (MetaDetalhes) ─────────────────────────────── */
+.meta-action-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.meta-btn-aporte {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--bd-teal, #4ee3c4), #2b9c84);
+  color: var(--bd-navy, #0d1525);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(78, 227, 196, 0.25);
+}
+.meta-btn-aporte:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(78, 227, 196, 0.35);
+}
+.meta-btn-resgate {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border-radius: 14px;
+  border: 1px solid rgba(240, 106, 106, 0.3);
+  background: rgba(240, 106, 106, 0.08);
+  color: var(--bd-red, #f06a6a);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.meta-btn-resgate:hover:not(:disabled) {
+  background: rgba(240, 106, 106, 0.15);
+  transform: translateY(-1px);
+}
+.meta-btn-resgate:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Saldo Card ────────────────────────────────────────────── */
+.meta-saldo-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(78, 227, 196, 0.06);
+  border: 1px solid rgba(78, 227, 196, 0.15);
+  border-radius: 14px;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1rem;
+}
+.meta-saldo-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+}
+.meta-saldo-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--bd-teal, #4ee3c4);
+  font-family: 'Syne', sans-serif;
+}
+
+/* ── Danger Zone ───────────────────────────────────────────── */
+.meta-danger-zone {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 1rem;
+}
+.meta-manage-row {
+  display: flex;
+  gap: 0.75rem;
+}
+.meta-btn-edit {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(172, 182, 229, 0.25);
+  background: rgba(172, 182, 229, 0.08);
+  color: var(--bd-purple, #ACB6E5);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.meta-btn-edit:hover {
+  background: rgba(172, 182, 229, 0.15);
+}
+.meta-btn-delete {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(240, 106, 106, 0.25);
+  background: rgba(240, 106, 106, 0.08);
+  color: var(--bd-red, #f06a6a);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.meta-btn-delete:hover {
+  background: rgba(240, 106, 106, 0.15);
+}
+
+/* ── History ───────────────────────────────────────────────── */
+.meta-history-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 12px;
+  background: rgba(78, 227, 196, 0.12);
+  color: var(--bd-teal, #4ee3c4);
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.meta-history-empty {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.85rem;
+}
+.meta-history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.meta-history-item:last-child {
+  border-bottom: none;
+}
+.meta-history-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.meta-history-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.meta-history-info strong {
+  font-size: 0.85rem;
+  color: var(--bd-text, #fff);
+}
+.meta-history-info small {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 0.1rem;
+}
+.meta-history-value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  white-space: nowrap;
+}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+.meta-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.meta-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.meta-modal {
+  background: var(--bd-navy, #0d1525);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 1.75rem;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  transform: translateY(20px);
+  transition: transform 0.25s;
+}
+.meta-modal-overlay.active .meta-modal {
+  transform: translateY(0);
+}
+.meta-modal-wide {
+  max-width: 520px;
+}
+.meta-modal h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--bd-text, #fff);
+  margin: 0 0 1rem;
+}
+.meta-modal-context {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+.meta-modal-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.meta-modal-input:focus {
+  border-color: var(--bd-teal, #4ee3c4);
+}
+.meta-modal-hint {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  text-align: center;
+}
+.meta-modal-hint-error {
+  color: var(--bd-red, #f06a6a);
+  background: rgba(240, 106, 106, 0.08);
+  padding: 0.5rem;
+  border-radius: 8px;
+}
+.meta-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* ── Autopilot Badge ───────────────────────────────────────── */
+.meta-badge-autopilot {
+  padding: 0.35rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(172, 182, 229, 0.1);
+  color: var(--bd-purple, #ACB6E5);
+  border: 1px solid rgba(172, 182, 229, 0.2);
+}

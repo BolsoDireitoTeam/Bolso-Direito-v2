@@ -2,152 +2,215 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFinance } from '../hooks/useFinance'
 import PageHeader from '../components/ui/PageHeader'
-
-const COLORS = [
-  '#4ee3c4', '#ACB6E5', '#f06a6a', '#f4c864', '#74ebd5', '#ff9a9e', '#a18cd1', '#fbc2eb'
-]
+import Card from '../components/ui/Card'
 
 const ICONS = [
-  'bi-piggy-bank', 'bi-airplane', 'bi-house-heart', 'bi-car-front', 'bi-laptop', 
-  'bi-graduation-cap', 'bi-heart-pulse', 'bi-umbrella', 'bi-gift'
+  'bi-piggy-bank', 'bi-car-front', 'bi-house-heart', 'bi-phone', 'bi-laptop', 'bi-graduation-cap',
+  'bi-gem', 'bi-heart-pulse', 'bi-airplane', 'bi-music-note', 'bi-gift', 'bi-controller',
+  'bi-hospital', 'bi-lamp', 'bi-camera', 'bi-joystick', 'bi-cash-stack', 'bi-bullseye',
 ]
 
-function NovaMeta() {
-  const { adicionarMeta } = useFinance()
-  const navigate = useNavigate()
+const COLORS = [
+  { value: '#4ee3c4', name: 'Teal' },
+  { value: '#ACB6E5', name: 'Roxo' },
+  { value: '#4ee3a0', name: 'Verde' },
+  { value: '#f4c864', name: 'Amarelo' },
+  { value: '#f06a6a', name: 'Vermelho' },
+  { value: '#74ebd5', name: 'Cyan' },
+]
 
+function formatBRL(val) {
+  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+function NovaMeta() {
+  const navigate = useNavigate()
+  const { adicionarMeta, saldo } = useFinance()
+
+  const [icone, setIcone] = useState('bi-bullseye')
   const [nome, setNome] = useState('')
   const [valorAlvo, setValorAlvo] = useState('')
-  const [prazo, setPrazo] = useState('')
-  const [cor, setCor] = useState(COLORS[0])
-  const [icone, setIcone] = useState(ICONS[0])
+  const [aporteInicial, setAporteInicial] = useState('')
+  const [cor, setCor] = useState('#4ee3c4')
+  const [erro, setErro] = useState('')
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!nome || !valorAlvo) return alert('Preecha os campos obrigatórios')
+    setErro('')
+
+    if (!nome.trim()) {
+      setErro('Dê um nome para sua meta.')
+      return
+    }
+
+    const target = parseFloat(valorAlvo)
+    if (!target || target <= 0) {
+      setErro('Informe um valor-alvo válido.')
+      return
+    }
+
+    const aporte = parseFloat(aporteInicial) || 0
+    if (aporte > saldo) {
+      setErro(`Saldo insuficiente. Disponível: ${formatBRL(saldo)}`)
+      return
+    }
+    if (aporte < 0) {
+      setErro('Aporte não pode ser negativo.')
+      return
+    }
 
     adicionarMeta({
-      nome,
-      valorAlvo: parseFloat(valorAlvo),
-      prazo,
+      icone,
+      nome: nome.trim(),
+      valorAlvo: target,
       cor,
-      icone
+      aporteInicial: aporte,
     })
 
     navigate('/metas')
   }
 
+  /* Preview values */
+  const previewTarget = parseFloat(valorAlvo) || 0
+  const previewAporte = parseFloat(aporteInicial) || 0
+  const previewPct = previewTarget > 0
+    ? Math.min(Math.round((previewAporte / previewTarget) * 100), 100)
+    : 0
+
   return (
     <>
-      <PageHeader 
-        title="Criar Nova Meta" 
-        greeting="Dê um nome aos seus sonhos"
-      />
+      <PageHeader
+        greeting="Metas"
+        title="Nova Meta"
+      >
+        <button className="meta-btn-back" onClick={() => navigate('/metas')}>
+          <i className="bi bi-arrow-left"></i> Voltar
+        </button>
+      </PageHeader>
 
-      <div className="row justify-content-center">
-        <div className="col-12 col-lg-8">
-          <form className="bd-card" onSubmit={handleSubmit}>
-            <div className="mb-4 text-center">
-              <div 
-                className="mx-auto meta-icon-circle"
-                style={{ width: '64px', height: '64px', fontSize: '2rem', backgroundColor: `${cor}15`, color: cor, marginBottom: '1rem' }}
-              >
+      <div className="row g-4">
+        {/* ── Formulário ── */}
+        <div className="col-12 col-lg-7">
+          <Card>
+            <form onSubmit={handleSubmit}>
+              {/* Icon picker */}
+              <label className="meta-form-label">Ícone da Meta</label>
+              <div className="meta-emoji-grid">
+                {ICONS.map(ic => (
+                  <button
+                    type="button"
+                    key={ic}
+                    className={`meta-emoji-btn${icone === ic ? ' selected' : ''}`}
+                    onClick={() => setIcone(ic)}
+                  >
+                    <i className={`bi ${ic}`}></i>
+                  </button>
+                ))}
+              </div>
+
+              {/* Nome */}
+              <label className="meta-form-label">Nome da Meta</label>
+              <input
+                className="meta-form-input"
+                type="text"
+                placeholder="Ex: Viagem para Europa"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+              />
+
+              {/* Valor alvo */}
+              <label className="meta-form-label">Valor a Alcançar (R$)</label>
+              <input
+                className="meta-form-input"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="10000.00"
+                value={valorAlvo}
+                onChange={(e) => setValorAlvo(e.target.value)}
+              />
+
+              {/* Aporte inicial */}
+              <label className="meta-form-label">
+                Aporte Inicial (Opcional) — Saldo: {formatBRL(saldo)}
+              </label>
+              <input
+                className="meta-form-input"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                value={aporteInicial}
+                onChange={(e) => setAporteInicial(e.target.value)}
+              />
+
+              {/* Cor */}
+              <label className="meta-form-label">Cor</label>
+              <div className="meta-color-grid">
+                {COLORS.map(c => (
+                  <button
+                    type="button"
+                    key={c.value}
+                    className={`meta-color-btn${cor === c.value ? ' selected' : ''}`}
+                    style={{ background: c.value }}
+                    onClick={() => setCor(c.value)}
+                    title={c.name}
+                  />
+                ))}
+              </div>
+
+              {/* Error */}
+              {erro && <div className="meta-form-error">{erro}</div>}
+
+              {/* Actions */}
+              <div className="meta-form-actions">
+                <button
+                  type="button"
+                  className="meta-btn-back"
+                  onClick={() => navigate('/metas')}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="meta-btn-nova">
+                  <i className="bi bi-check-lg"></i> Criar Meta
+                </button>
+              </div>
+            </form>
+          </Card>
+        </div>
+
+        {/* ── Preview ── */}
+        <div className="col-12 col-lg-5">
+          <Card>
+            <h5 className="meta-section-label">Preview</h5>
+            <div className="meta-preview-wrap">
+              <div className="meta-preview-icon" style={{ color: cor }}>
                 <i className={`bi ${icone}`}></i>
               </div>
-              <p className="text-muted small">Prévia do ícone</p>
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label text-muted small">Nome da Meta</label>
-              <input 
-                type="text" 
-                className="input-bd-field bg-transparent border-bottom rounded-0" 
-                placeholder="Ex: Viagem para o Japão"
-                value={nome}
-                onChange={e => setNome(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <label className="form-label text-muted small">Valor Alvo (R$)</label>
-                <div className="input-group-bd">
-                   <span className="input-prefix">R$</span>
-                   <input 
-                     type="number" 
-                     className="input-bd-field" 
-                     placeholder="0,00"
-                     value={valorAlvo}
-                     onChange={e => setValorAlvo(e.target.value)}
-                     required
-                   />
+              <div className="meta-preview-name">{nome || 'Minha Meta'}</div>
+              <div className="meta-preview-target">
+                {previewTarget > 0 ? formatBRL(previewTarget) : 'R$ 0,00'}
+              </div>
+              <div className="meta-preview-bar">
+                <div className="progress" style={{ height: '8px' }}>
+                  <div
+                    className="progress-bar"
+                    style={{
+                      width: `${previewPct}%`,
+                      background: cor,
+                    }}
+                  />
                 </div>
               </div>
-              <div className="col-md-6 mb-3">
-                <label className="form-label text-muted small">Prazo Estimado (Opcional)</label>
-                <input 
-                  type="month" 
-                  className="input-group-bd w-100 bg-transparent"
-                  value={prazo}
-                  onChange={e => setPrazo(e.target.value)}
-                />
-              </div>
+              {previewAporte > 0 && (
+                <div className="meta-preview-aporte">
+                  Aporte inicial: {formatBRL(previewAporte)} ({previewPct}%)
+                </div>
+              )}
             </div>
-
-            <div className="mb-4">
-              <label className="form-label text-muted small">Escolha uma Cor</label>
-              <div className="d-flex flex-wrap gap-2">
-                {COLORS.map(c => (
-                  <div 
-                    key={c}
-                    className={`color-pick ${cor === c ? 'active' : ''}`}
-                    style={{ backgroundColor: c }}
-                    onClick={() => setCor(c)}
-                  ></div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label text-muted small">Escolha um Ícone</label>
-              <div className="d-flex flex-wrap gap-3" style={{ fontSize: '1.5rem' }}>
-                {ICONS.map(i => (
-                  <i 
-                    key={i}
-                    className={`bi ${i} cursor-pointer ${icone === i ? 'text-teal fw-bold' : 'text-muted'}`}
-                    onClick={() => setIcone(i)}
-                    style={{ cursor: 'pointer' }}
-                  ></i>
-                ))}
-              </div>
-            </div>
-
-            <div className="d-flex gap-3">
-              <button type="button" className="btn-bd-secondary flex-grow-1 py-3" onClick={() => navigate('/metas')}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn-bd-primary flex-grow-2 py-3">
-                Criar Meta
-              </button>
-            </div>
-          </form>
+          </Card>
         </div>
       </div>
-      
-      <style>{`
-        .color-pick {
-          width: 32px; height: 32px;
-          border-radius: 50%;
-          cursor: pointer;
-          border: 3px solid transparent;
-        }
-        .color-pick.active {
-          border-color: white;
-          box-shadow: 0 0 10px rgba(255,255,255,0.3);
-        }
-        .flex-grow-2 { flex: 2; }
-      `}</style>
     </>
   )
 }

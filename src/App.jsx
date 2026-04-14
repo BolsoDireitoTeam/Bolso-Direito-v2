@@ -31,6 +31,7 @@ import UploadExtrato from './pages/UploadExtrato'
 import UploadFatura from './pages/UploadFatura'
 import Metas from './pages/Metas'
 import NovaMeta from './pages/NovaMeta'
+import MetaDetalhes from './pages/MetaDetalhes'
 
 
 function App() {
@@ -131,6 +132,7 @@ function App() {
                       <Route path="/upload/fatura" element={<UploadFatura />} />
                       <Route path="/metas" element={<Metas />} />
                       <Route path="/metas/nova" element={<NovaMeta />} />
+                      <Route path="/metas/:id" element={<MetaDetalhes />} />
                     </Routes>
                   </main>
                   <Fab onClick={toggleMenu} />

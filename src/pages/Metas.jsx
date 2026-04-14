@@ -1,76 +1,121 @@
-import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useFinance } from '../hooks/useFinance'
 import PageHeader from '../components/ui/PageHeader'
-import MetaCard from '../components/finance/MetaCard'
-import ContributeModal from '../components/finance/ContributeModal'
+import ProgressBar from '../components/ui/ProgressBar'
 import PaywallOverlay from '../components/ui/PaywallOverlay'
-import { Link } from 'react-router-dom'
+
+function formatBRL(val) {
+  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
 
 function Metas() {
-  const { metas, removerMeta, contribuirMetaSaldo, agendarMeta, configuracoes } = useFinance()
-  const [selectedMeta, setSelectedMeta] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
+  const navigate = useNavigate()
+  const { metas, saldo, configuracoes } = useFinance()
   const isPremium = configuracoes.plano === 'pago'
 
-  const handleOpenContribute = (meta) => {
-    setSelectedMeta(meta)
-    setIsModalOpen(true)
-  }
+  const totalAlocado = metas.reduce((s, m) => s + m.valorAtual, 0)
+  const metasAtivas = metas.filter(m => m.valorAtual < m.valorAlvo).length
+  const metasConcluidas = metas.filter(m => m.valorAtual >= m.valorAlvo).length
 
   return (
     <div style={{ position: 'relative', minHeight: '60vh' }}>
       {!isPremium && (
-        <PaywallOverlay 
-          titulo="Módulo de Metas PRO" 
-          descricao="Defina objetivos, visualize seu progresso e use o Autopilot para poupar automaticamente todo mês."
+        <PaywallOverlay
+          titulo="Módulo de Metas PRO"
+          descricao="Defina objetivos, visualize seu progresso e acompanhe cada aporte."
         />
       )}
 
       <div style={{ filter: isPremium ? 'none' : 'blur(4px)', pointerEvents: isPremium ? 'auto' : 'none' }}>
-        <PageHeader 
-          title="Minhas Metas" 
-          greeting="Planeje seus sonhos"
-        />
+        <PageHeader
+          greeting="Seus Objetivos"
+          title="Metas"
+        >
+          <button
+            className="meta-btn-nova"
+            onClick={() => navigate('/metas/nova')}
+          >
+            <i className="bi bi-plus-lg"></i> Nova Meta
+          </button>
+        </PageHeader>
 
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="section-title">Gerenciar Objetivos</h2>
-          <Link to="/metas/nova" className="btn-bd-primary px-3 py-2" style={{ fontSize: '0.85rem' }}>
-            <i className="bi bi-plus-lg me-2"></i> Nova Meta
-          </Link>
-        </div>
-
-        <div className="row">
-          {metas.length === 0 ? (
-            <div className="col-12 text-center py-5">
-              <div className="mb-3" style={{ fontSize: '3rem', opacity: '0.3' }}>
-                <i className="bi bi-piggy-bank"></i>
+        {/* ── Summary Row ── */}
+        <div className="row g-3 mb-4">
+          {[
+            { icon: 'bi-wallet2',  label: 'Saldo Disponível', val: formatBRL(saldo),        color: '#4ee3c4' },
+            { icon: 'bi-bullseye', label: 'Total em Metas',   val: formatBRL(totalAlocado),  color: '#ACB6E5' },
+            { icon: 'bi-flag',     label: 'Metas Ativas',     val: metasAtivas,              color: '#4ee3a0' },
+            { icon: 'bi-trophy',   label: 'Conquistadas',     val: metasConcluidas,          color: '#f4c864' },
+          ].map((c, i) => (
+            <div className="col-6 col-lg-3" key={i}>
+              <div className="meta-summary-card">
+                <div
+                  className="meta-summary-icon"
+                  style={{ background: `${c.color}1A`, color: c.color }}
+                >
+                  <i className={`bi ${c.icon}`} />
+                </div>
+                <p className="meta-summary-label">{c.label}</p>
+                <p className="meta-summary-value" style={{ color: c.color }}>{c.val}</p>
               </div>
-              <h5 className="text-muted">Você ainda não definiu nenhuma meta.</h5>
-              <p className="text-muted small">Comece a poupar para seus sonhos hoje mesmo!</p>
-              <Link to="/metas/nova" className="btn-bd-primary mt-3">Criar Primeira Meta</Link>
             </div>
-          ) : (
-            metas.map(meta => (
-              <div key={meta.id} className="col-12 col-md-6 col-xl-4 mb-3">
-                <MetaCard 
-                  meta={meta} 
-                  onContribute={handleOpenContribute}
-                  onRemove={removerMeta}
-                />
-              </div>
-            ))
-          )}
+          ))}
         </div>
-      </div>
 
-      <ContributeModal 
-        meta={selectedMeta}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirmSaldo={contribuirMetaSaldo}
-        onConfirmAgenda={agendarMeta}
-      />
+        {/* ── Metas Grid ── */}
+        {metas.length === 0 ? (
+          <div className="meta-empty">
+            <div className="meta-empty-icon"><i className="bi bi-bullseye"></i></div>
+            <p>Você ainda não tem nenhuma meta criada.<br />Comece agora!</p>
+            <button
+              className="meta-btn-nova"
+              onClick={() => navigate('/metas/nova')}
+            >
+              <i className="bi bi-plus-lg"></i> Criar primeira meta
+            </button>
+          </div>
+        ) : (
+          <div className="row g-3">
+            {metas.map(meta => {
+              const pct = meta.valorAlvo > 0
+                ? Math.min(Math.round((meta.valorAtual / meta.valorAlvo) * 100), 100)
+                : 0
+              const isComplete = pct >= 100
+
+              return (
+                <div className="col-12 col-sm-6 col-lg-4" key={meta.id}>
+                  <div
+                    className="meta-card"
+                    onClick={() => navigate(`/metas/${meta.id}`)}
+                  >
+                    <div className="meta-card-icon" style={{ color: meta.cor }}>
+                      <i className={`bi ${meta.icone || 'bi-piggy-bank'}`}></i>
+                    </div>
+                    <div className="meta-card-name">{meta.nome}</div>
+                    <div className="meta-card-values">
+                      {formatBRL(meta.valorAtual)} de {formatBRL(meta.valorAlvo)}
+                    </div>
+                    <ProgressBar
+                      value={meta.valorAtual}
+                      max={meta.valorAlvo}
+                      color={meta.cor}
+                      height="8px"
+                    />
+                    <div className="meta-card-pct" style={{ color: meta.cor }}>
+                      {pct}%
+                    </div>
+                    {isComplete && (
+                      <div className="meta-badge-complete">
+                        <i className="bi bi-check-circle-fill"></i> Conquistada!
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

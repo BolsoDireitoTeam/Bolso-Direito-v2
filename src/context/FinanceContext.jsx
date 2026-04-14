@@ -199,14 +199,32 @@ export function FinanceProvider({ children }) {
 
   const adicionarMeta = useCallback((params) => {
     const nova = MetaDB.adicionar(params)
+    if (params.aporteInicial && params.aporteInicial > 0) {
+      BolsoDB.adicionarGasto({
+        nome: `Aporte inicial: ${params.nome}`,
+        valor: params.aporteInicial,
+        categoria: 'Poupança',
+        tipo: 'debito'
+      })
+      MetaDB.contribuir(nova.id, params.aporteInicial, 'aporte')
+    }
     bump()
+    mostrarToast('Meta criada com sucesso! 🎯', 'success')
     return nova
-  }, [bump])
+  }, [bump, mostrarToast])
 
   const removerMeta = useCallback((id) => {
+    const meta = MetaDB.listar().find(m => m.id === id)
+    if (meta && meta.valorAtual > 0) {
+      BolsoDB.adicionarGanho({
+        nome: `Resgate [Meta excluída]: ${meta.nome}`,
+        valor: meta.valorAtual,
+      })
+    }
     MetaDB.remover(id)
     bump()
-  }, [bump])
+    mostrarToast('Meta excluída.', 'success')
+  }, [bump, mostrarToast])
 
   const contribuirMetaSaldo = useCallback((id, valor) => {
     try {
@@ -218,7 +236,7 @@ export function FinanceProvider({ children }) {
         tipo: 'debito'
       })
       // 2. Incrementar meta
-      MetaDB.contribuir(id, valor, 'direta')
+      MetaDB.contribuir(id, valor, 'aporte')
       bump()
       mostrarToast('Aporte realizado com sucesso!', 'success')
     } catch (err) {
@@ -231,6 +249,31 @@ export function FinanceProvider({ children }) {
     MetaDB.editar(id, { agendamento })
     bump()
     mostrarToast('Agendamento salvo!', 'success')
+  }, [bump, mostrarToast])
+
+  const resgatarMetaSaldo = useCallback((id, valor) => {
+    try {
+      const meta = MetaDB.listar().find(m => m.id === id)
+      if (!meta) throw new Error('Meta não encontrada')
+      if (valor > meta.valorAtual) throw new Error('Valor excede o disponível na meta')
+
+      BolsoDB.adicionarGanho({
+        nome: `Resgate: ${meta.nome}`,
+        valor,
+      })
+      MetaDB.resgatar(id, valor)
+      bump()
+      mostrarToast('Resgate realizado com sucesso!', 'success')
+    } catch (err) {
+      console.error('[FinanceContext] Erro no resgate:', err)
+      mostrarToast(err.message, 'error')
+    }
+  }, [bump, mostrarToast])
+
+  const editarMeta = useCallback((id, patch) => {
+    MetaDB.editar(id, patch)
+    bump()
+    mostrarToast('Meta atualizada!', 'success')
   }, [bump, mostrarToast])
 
   // ── Value do context ──
@@ -271,6 +314,8 @@ export function FinanceProvider({ children }) {
     adicionarMeta,
     removerMeta,
     contribuirMetaSaldo,
+    resgatarMetaSaldo,
+    editarMeta,
     agendarMeta,
 
     // Configurações do Sistema (Fase A)
@@ -305,7 +350,7 @@ export function FinanceProvider({ children }) {
     adicionarGastoMensal, removerGastoMensal, editarTransacao,
     virarMes, resetarDados,
     configuracoes, salvarConfiguracoes, alertaConfigurar, importarTransacoes,
-    metas, adicionarMeta, removerMeta, contribuirMetaSaldo, agendarMeta,
+    metas, adicionarMeta, removerMeta, contribuirMetaSaldo, resgatarMetaSaldo, editarMeta, agendarMeta,
     transacaoPendente, toast, mostrarToast,
   ])
 
