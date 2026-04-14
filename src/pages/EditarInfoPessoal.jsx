@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useFinance } from "../hooks/useFinance";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -254,13 +255,14 @@ function calcStrength(val) {
 }
 
 /* ── Componente ── */
-export default function EditarInfoPessoal({ usuario, onSalvar }) {
+export default function EditarInfoPessoal() {
   const navigate = useNavigate();
+  const { usuario, salvarUsuario } = useFinance();
   const avatarInputRef = useRef(null);
 
   const [nome,          setNome]          = useState(usuario?.nome   ?? "Usuário");
-  const [email,         setEmail]         = useState(usuario?.email  ?? "usuario@email.com");
-  const [celular,       setCelular]       = useState(usuario?.celular ?? "(21) 99999-9999");
+  const [email,         setEmail]         = useState(usuario?.email  ?? "");
+  const [celular,       setCelular]       = useState(usuario?.celular ?? "");
   const [avatarSrc,     setAvatarSrc]     = useState(
     usuario?.avatar ??
     `https://ui-avatars.com/api/?name=${encodeURIComponent(usuario?.nome ?? "Usuário")}&background=4ee3c4&color=0d1525&size=200&bold=true`
@@ -293,9 +295,7 @@ export default function EditarInfoPessoal({ usuario, onSalvar }) {
       setToast({ msg: "As senhas não coincidem.", type: "error" });
       return;
     }
-    if (typeof onSalvar === "function") {
-      onSalvar({ nome, email, celular, avatar: avatarSrc });
-    }
+    salvarUsuario({ nome, email, celular, avatar: avatarSrc });
     setToast({ msg: "Alterações salvas com sucesso!", type: "success" });
     setTimeout(() => setToast({ msg: "", type: "" }), 3000);
   };

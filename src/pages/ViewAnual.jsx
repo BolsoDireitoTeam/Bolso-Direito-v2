@@ -10,6 +10,7 @@ import { moeda } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 import GroupedBarChart from '../components/charts/GroupedBarChart'
+import PaywallOverlay from '../components/ui/PaywallOverlay'
 
 const MESES_LABEL = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 

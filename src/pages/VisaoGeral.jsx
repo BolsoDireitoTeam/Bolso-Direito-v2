@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useFinance } from '../hooks/useFinance'
-import { moeda, mesAtualLabel } from '../utils/format'
+import { moeda, nomeMes } from '../utils/format'
 
 import PageHeader from '../components/ui/PageHeader'
 import StatCard from '../components/ui/StatCard'
@@ -16,9 +16,9 @@ import LineChart from '../components/charts/LineChart'
 import RadarChart from '../components/charts/RadarChart'
 import GroupedBarChart from '../components/charts/GroupedBarChart'
 
-import { chartData } from '../data/mockData'
+// chartData removido — dados vêm do FinanceContext
 
-function VisaoGeral({ onAddClick, usuario }) {
+function VisaoGeral({ onAddClick }) {
   const {
     saldo,
     transacoes,
@@ -28,6 +28,9 @@ function VisaoGeral({ onAddClick, usuario }) {
     gastosPorCategoria,
     alertaConfigurar,
     metas,
+    investimentosTotais,
+    usuario,
+    mesAnoFiltro,
   } = useFinance()
 
   // Últimas 6 transações
@@ -104,8 +107,12 @@ function VisaoGeral({ onAddClick, usuario }) {
   const realPieData = useMemo(() => {
     const categories = Object.keys(gastosPorCategoria)
     const values = Object.values(gastosPorCategoria)
-    
-    if (categories.length === 0) return chartData.pieChart
+
+    if (categories.length === 0) return {
+      labels: ['Sem dados'],
+      data: [1],
+      colors: ['rgba(255,255,255,0.08)']
+    }
 
     return {
       labels: categories,
@@ -114,53 +121,81 @@ function VisaoGeral({ onAddClick, usuario }) {
     }
   }, [gastosPorCategoria])
 
-  // 2. Bar: Gastos nos últimos 7 dias (o componente BarChart só suporta 1 dataset de 'Despesas')
+  // 2. Bar: Gastos por dia no mês selecionado
   const realBarData = useMemo(() => {
-    const labels = [...Array(7)].map((_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (6 - i))
-      return d.toISOString().split('T')[0]
-    })
-
-    const data = labels.map(dia => 
-      transacoes.filter(t => t.data === dia && t.tipo === 'gasto').reduce((acc, t) => acc + t.valor, 0)
-    )
-
-    return {
-      labels: labels.map(d => d.split('-')[2] + '/' + d.split('-')[1]),
-      data
+    const [yyyy, mm] = mesAnoFiltro.split('-').map(Number)
+    const diasNoMes = new Date(yyyy, mm, 0).getDate()
+    const labels = []
+    const data = []
+    for (let d = 1; d <= diasNoMes; d++) {
+      const dia = `${mesAnoFiltro}-${String(d).padStart(2, '0')}`
+      if (d % 4 === 1 || d === diasNoMes) labels.push(String(d))
+      else labels.push('')
+      data.push(
+        transacoes
+          .filter(t => t.data === dia && t.tipo === 'gasto')
+          .reduce((acc, t) => acc + t.valor, 0)
+      )
     }
-  }, [transacoes])
+    return { labels, data }
+  }, [transacoes, mesAnoFiltro])
 
-  // 3. Line: Variação de Saldo (Últimos 30 dias)
+  // 3. Line: Variação acumulada do saldo no mês selecionado
   const realLineData = useMemo(() => {
-    const labels = [...Array(30)].map((_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (29 - i))
-      return d.toISOString().split('T')[0]
-    })
-
-    // Mostramos a "movimentação diária" se tivermos dados, caso contrário fallback
-    const data = labels.map(dia => 
-      transacoes.filter(t => t.data === dia).reduce((acc, t) => acc + (t.tipo === 'ganho' ? t.valor : -t.valor), 0)
-    )
-
-    const hasData = data.some(v => v !== 0)
-    if (!hasData) return chartData.lineChart
-
-    return {
-      labels: labels.filter((_, i) => i % 5 === 0).map(d => d.split('-')[2]),
-      data
+    const [yyyy, mm] = mesAnoFiltro.split('-').map(Number)
+    const diasNoMes = new Date(yyyy, mm, 0).getDate()
+    const labels = []
+    const data = []
+    for (let d = 1; d <= diasNoMes; d++) {
+      const dia = `${mesAnoFiltro}-${String(d).padStart(2, '0')}`
+      if (d % 5 === 1 || d === diasNoMes) labels.push(String(d))
+      else labels.push('')
+      data.push(
+        transacoes
+          .filter(t => t.data === dia)
+          .reduce((acc, t) => acc + (t.tipo === 'ganho' ? t.valor : -t.valor), 0)
+      )
     }
+    return { labels, data }
+  }, [transacoes, mesAnoFiltro])
+
+  // 4. Radar: Gastos por Categoria (% do total)
+  const realRadarData = useMemo(() => {
+    const cats = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Educação']
+    const atual = cats.map(c => gastosPorCategoria[c] || 0)
+    const maxVal = Math.max(...atual, 1)
+    return {
+      labels: cats,
+      atual: atual.map(v => Math.round((v / maxVal) * 100)),
+      meta: cats.map(() => 100),
+    }
+  }, [gastosPorCategoria])
+
+  // 5. Grouped Bar: Receitas vs Despesas nos últimos 7 meses
+  const realGroupedBar = useMemo(() => {
+    const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    const hoje = new Date()
+    const labels = []
+    const receitas = []
+    const despesas = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      labels.push(MESES[d.getMonth()])
+      const txMes = transacoes.filter(t => t.data && t.data.startsWith(key))
+      receitas.push(txMes.filter(t => t.tipo === 'ganho').reduce((a, t) => a + t.valor, 0))
+      despesas.push(txMes.filter(t => t.tipo === 'gasto').reduce((a, t) => a + t.valor, 0))
+    }
+    return { labels, receitas, despesas }
   }, [transacoes])
 
   return (
     <>
       {/* Page Header */}
       <PageHeader
-        greeting={`Olá, ${usuario ? usuario.nome : 'Usuário'}!`}
+        greeting={`Olá, ${usuario?.nome || 'Usuário'}!`}
         title="Visão Geral"
-        dateBadge={mesAtualLabel()}
+        dateBadge={nomeMes(mesAnoFiltro)}
       />
 
       {/* Alertas de fatura */}
@@ -192,6 +227,7 @@ function VisaoGeral({ onAddClick, usuario }) {
             saldo={saldo}
             receitas={receitasMes}
             despesas={despesasMes}
+            investido={investimentosTotais.montanteTotal}
           />
         </div>
 
@@ -232,10 +268,10 @@ function VisaoGeral({ onAddClick, usuario }) {
       {/* ── Row 4: Radar + Grouped Bar ── */}
       <div className="row g-3">
         <div className="col-12 col-md-6 col-lg-4">
-          <RadarChart data={chartData.radarChart} />
+          <RadarChart data={realRadarData} />
         </div>
         <div className="col-12 col-md-6 col-lg-8">
-          <GroupedBarChart data={chartData.groupedBar} />
+          <GroupedBarChart data={realGroupedBar} />
         </div>
       </div>
     </>

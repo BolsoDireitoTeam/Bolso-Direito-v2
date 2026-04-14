@@ -7,7 +7,7 @@
 import { useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useFinance } from '../hooks/useFinance'
-import { moeda, hojeISO } from '../utils/format'
+import { moeda, hojeISO, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import '../styles/teclado.css'
 
@@ -32,7 +32,12 @@ function avaliarExpressao(expr) {
 function TecladoValores() {
   const { tipo } = useParams()           // 'ganho' | 'gasto'
   const navigate = useNavigate()
-  const { adicionarGanho, setTransacaoPendente, mostrarToast } = useFinance()
+  const { adicionarGanho, setTransacaoPendente, mostrarToast, mesAnoFiltro } = useFinance()
+
+  // Data padrão: hoje se for o mês atual, ou primeiro dia do mês selecionado
+  const dataDefault = mesAnoFiltro === mesAtual()
+    ? hojeISO()
+    : `${mesAnoFiltro}-01`
 
   const [expressao, setExpressao] = useState('')
   const [nome, setNome] = useState('')
@@ -88,7 +93,7 @@ function TecladoValores() {
         return
       }
       try {
-        adicionarGanho({ nome: nome.trim(), valor, data: hojeISO() })
+        adicionarGanho({ nome: nome.trim(), valor, data: dataDefault })
         mostrarToast(`Ganho de ${moeda(valor)} adicionado! 🎉`, 'success')
         navigate('/')
       } catch (err) {

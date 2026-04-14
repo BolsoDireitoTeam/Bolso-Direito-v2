@@ -8,6 +8,7 @@ import { createContext, useState, useEffect, useMemo, useCallback } from 'react'
 import { BolsoDB } from '../services/BolsoDB'
 import { BolsoEngine } from '../services/BolsoEngine'
 import { MetaDB } from '../services/MetaDB'
+import { InvestimentoDB } from '../services/InvestimentoDB'
 import { mesAtual } from '../utils/format'
 import { useAutoViradaMes } from '../hooks/useAutoViradaMes'
 
@@ -17,6 +18,9 @@ export function FinanceProvider({ children }) {
   // ── Version counter: cada mutação incrementa para forçar recálculo ──
   const [version, setVersion] = useState(0)
   const bump = useCallback(() => setVersion(v => v + 1), [])
+
+  // ── Filtro global de mês/ano — "ambiente" do app ──
+  const [mesAnoFiltro, setMesAnoFiltro] = useState(() => mesAtual())
 
   // ── State temporário para o fluxo de gasto (Teclado → Categoria → Tipo) ──
   const [transacaoPendente, setTransacaoPendente] = useState(null)
@@ -35,10 +39,34 @@ export function FinanceProvider({ children }) {
   // ── Hook de automação de virada de mês (Issue #21) ──
   const { executarAutoVirada } = useAutoViradaMes(bump, mostrarToast)
 
-  // ── Inicializar BolsoDB e executar auto-virada ──
+  // ── Usuário e Financeiro (persistidos no localStorage) ──
+  const [usuario, setUsuario] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('bd_usuario')) ?? { nome: 'Usuário', email: '', celular: '', avatar: null } }
+    catch { return { nome: 'Usuário', email: '', celular: '', avatar: null } }
+  })
+  const [financeiro, setFinanceiro] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('bd_financeiro')) ?? null }
+    catch { return null }
+  })
+
+  const salvarUsuario = useCallback((patch) => {
+    setUsuario(prev => {
+      const atualizado = { ...prev, ...patch }
+      localStorage.setItem('bd_usuario', JSON.stringify(atualizado))
+      return atualizado
+    })
+  }, [])
+
+  const salvarFinanceiro = useCallback((dados) => {
+    setFinanceiro(dados)
+    localStorage.setItem('bd_financeiro', JSON.stringify(dados))
+  }, [])
+
+  // ── Inicializar BolsoDB, MetaDB, InvestimentoDB e auto-virada ──
   useEffect(() => {
     BolsoDB.init()
     MetaDB.init()
+    InvestimentoDB.init()
     const { alertaConfigurar: alerta } = executarAutoVirada() ?? {}
     setAlertaConfigurar(!!alerta)
     bump()
@@ -50,11 +78,10 @@ export function FinanceProvider({ children }) {
   const estado = useMemo(() => BolsoDB.getEstado(), [version])
   const alertas = useMemo(() => BolsoEngine.calcularAlertas(), [version])
 
-  // Dados do mês atual
-  const mesAtualKey = mesAtual()
+  // ── Dados filtrados pelo mês/ano selecionado globalmente ──
   const transacoesMesAtual = useMemo(() => {
-    return transacoes.filter(tx => tx.data && tx.data.startsWith(mesAtualKey))
-  }, [version, mesAtualKey])
+    return transacoes.filter(tx => tx.data && tx.data.startsWith(mesAnoFiltro))
+  }, [transacoes, mesAnoFiltro])
 
   const receitasMes = useMemo(() => {
     return transacoesMesAtual
@@ -69,10 +96,10 @@ export function FinanceProvider({ children }) {
   }, [transacoesMesAtual])
 
   const totalFaturaMesAtual = useMemo(() => {
-    return BolsoDB.getTotalFatura(mesAtualKey)
-  }, [version, mesAtualKey])
+    return BolsoDB.getTotalFatura(mesAnoFiltro)
+  }, [version, mesAnoFiltro])
 
-  // Gastos por categoria no mês atual
+  // Gastos por categoria no mês filtrado
   const gastosPorCategoria = useMemo(() => {
     const mapa = {}
     transacoesMesAtual
@@ -276,6 +303,59 @@ export function FinanceProvider({ children }) {
     mostrarToast('Meta atualizada!', 'success')
   }, [bump, mostrarToast])
 
+  // ── Investimentos ──
+  const investimentos = useMemo(() => InvestimentoDB.listar(), [version])
+  const investimentosTotais = useMemo(() => InvestimentoDB.getTotais(), [version])
+
+  const adicionarInvestimento = useCallback((params) => {
+    const inv = InvestimentoDB.adicionar(params)
+    bump()
+    mostrarToast('Investimento adicionado!', 'success')
+    return inv
+  }, [bump, mostrarToast])
+
+  const removerInvestimento = useCallback((id) => {
+    const inv = InvestimentoDB.remover(id)
+    if (inv) {
+      // Devolver montante acumulado ao saldo
+      const { montante } = InvestimentoDB.calcularValorAcumulado(inv)
+      if (montante > 0) {
+        BolsoDB.adicionarGanho({
+          nome: `Resgate investimento: ${inv.nome}`,
+          valor: montante,
+        })
+      }
+      bump()
+      mostrarToast('Investimento resgatado e valor devolvido ao saldo.', 'success')
+    }
+    return inv
+  }, [bump, mostrarToast])
+
+  const editarInvestimento = useCallback((id, patch) => {
+    InvestimentoDB.editar(id, patch)
+    bump()
+    mostrarToast('Investimento atualizado!', 'success')
+  }, [bump, mostrarToast])
+
+  const aportarInvestimento = useCallback((id, valor) => {
+    try {
+      const inv = InvestimentoDB.listar().find(i => i.id === id)
+      if (!inv) throw new Error('Investimento não encontrado')
+      BolsoDB.adicionarGasto({
+        nome: `Aporte: ${inv.nome}`,
+        valor,
+        categoria: 'Poupança',
+        tipo: 'debito'
+      })
+      InvestimentoDB.aportar(id, valor)
+      bump()
+      mostrarToast('Aporte realizado com sucesso!', 'success')
+    } catch (err) {
+      console.error('[FinanceContext] Erro no aporte:', err)
+      mostrarToast(err.message, 'error')
+    }
+  }, [bump, mostrarToast])
+
   // ── Value do context ──
   const value = useMemo(() => ({
     // Leituras
@@ -309,7 +389,7 @@ export function FinanceProvider({ children }) {
     virarMes,
     resetarDados,
 
-    // Metas (Fase B)
+    // Metas
     metas,
     adicionarMeta,
     removerMeta,
@@ -318,12 +398,21 @@ export function FinanceProvider({ children }) {
     editarMeta,
     agendarMeta,
 
-    // Configurações do Sistema (Fase A)
+    // Investimentos
+    investimentos,
+    investimentosTotais,
+    adicionarInvestimento,
+    removerInvestimento,
+    editarInvestimento,
+    aportarInvestimento,
+    calcularValorInvestimento: InvestimentoDB.calcularValorAcumulado,
+
+    // Configurações do Sistema
     configuracoes,
     salvarConfiguracoes,
     alertaConfigurar,
 
-    // Importação em lote (Fase C)
+    // Importação em lote
     importarTransacoes,
 
     // Constantes
@@ -333,6 +422,16 @@ export function FinanceProvider({ children }) {
     // Fluxo de gasto entre páginas
     transacaoPendente,
     setTransacaoPendente,
+
+    // Filtro global de mês/ano
+    mesAnoFiltro,
+    setMesAnoFiltro,
+
+    // Usuário e Financeiro
+    usuario,
+    financeiro,
+    salvarUsuario,
+    salvarFinanceiro,
 
     // Toast
     toast,
@@ -351,7 +450,10 @@ export function FinanceProvider({ children }) {
     virarMes, resetarDados,
     configuracoes, salvarConfiguracoes, alertaConfigurar, importarTransacoes,
     metas, adicionarMeta, removerMeta, contribuirMetaSaldo, resgatarMetaSaldo, editarMeta, agendarMeta,
+    investimentos, investimentosTotais, adicionarInvestimento, removerInvestimento, editarInvestimento, aportarInvestimento,
+    usuario, financeiro, salvarUsuario, salvarFinanceiro,
     transacaoPendente, toast, mostrarToast,
+    mesAnoFiltro, setMesAnoFiltro,
   ])
 
   return (

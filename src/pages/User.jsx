@@ -2,9 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { useFinance } from "../hooks/useFinance";
 import { moeda } from "../utils/format";
 
-export default function User({ usuario }) {
+export default function User() {
   const navigate = useNavigate();
-  const { configuracoes, salvarConfiguracoes, saldo, mostrarToast } = useFinance();
+  const { configuracoes, salvarConfiguracoes, saldo, mostrarToast, usuario } = useFinance();
 
   const nome = usuario?.nome ?? "Usuário";
   const avatar = usuario?.avatar ??
@@ -69,20 +69,6 @@ export default function User({ usuario }) {
         </div>
       </div>
 
-      <style>{`
-        .plan-badge {
-          position: absolute;
-          bottom: 5px; right: 5px;
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 0.7rem;
-          font-weight: 800;
-          letter-spacing: 0.5px;
-        }
-        .plan-badge.free { background: #333; color: #aaa; }
-        .plan-badge.premium { background: var(--bd-teal); color: #0d1525; box-shadow: 0 0 15px rgba(78, 227, 196, 0.4); }
-        .btn-bd-outline { background: transparent; border-radius: 14px; font-weight: 600; cursor: pointer; }
-      `}</style>
     </div>
   );
 }

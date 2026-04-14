@@ -1,61 +1,56 @@
 /* ============================================================
    Bolso Direito v2 — transacoes.css
-   Estilos da lista de transações filtrada (ListaTransacoes)
+   Responsividade fluida — sem tamanhos estáticos
    ============================================================ */
 
 /* ── Filtros ── */
 .transacoes-filtros {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  gap: var(--space-xs, 0.5rem);
+  margin-bottom: var(--space-md, 1.25rem);
   flex-wrap: wrap;
 }
 
 .transacoes-select {
   flex: 1;
-  min-width: 140px;
+  min-width: clamp(120px, 30vw, 160px);
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  padding: 0.6rem 0.9rem;
+  padding: var(--space-xs, 0.6rem) var(--space-sm, 0.9rem);
   color: #fff;
-  font-size: 0.85rem;
+  font-size: var(--fs-sm, 0.85rem);
   outline: none;
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a9bbf' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
-  padding-right: 2rem;
+  padding-right: 2.2rem;
   transition: border-color 0.2s;
+  min-height: 40px; /* Touch target */
 }
-
-.transacoes-select:focus {
-  border-color: var(--bd-teal);
-}
-
-.transacoes-select option {
-  background: #1a2236;
-  color: #fff;
-}
+.transacoes-select:focus { border-color: var(--bd-teal); }
+.transacoes-select option { background: #1a2236; color: #fff; }
 
 /* ── Header de período ── */
 .transacoes-header {
   background: linear-gradient(135deg, rgba(78,227,196,0.1), rgba(172,182,229,0.08));
   border: 1px solid rgba(78,227,196,0.15);
-  border-radius: 14px;
-  padding: 1rem;
+  border-radius: clamp(10px, 2vw, 14px);
+  padding: clamp(0.75rem, 2vw, 1rem);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  margin-bottom: var(--space-md, 1.25rem);
 }
 
 @media (min-width: 576px) {
   .transacoes-header {
     display: flex;
     justify-content: space-between;
-    padding: 1.25rem 1.5rem;
+    align-items: center;
+    padding: clamp(1rem, 2vw, 1.25rem) clamp(1.25rem, 3vw, 1.5rem);
     grid-template-columns: none;
   }
 }
@@ -67,19 +62,20 @@
 }
 
 .transacoes-header-label {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: var(--fs-xs, 0.72rem);
+  color: rgba(255, 255, 255, 0.65);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .transacoes-header-value {
-  font-size: 1.1rem;
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
   font-weight: 700;
   font-family: 'Syne', sans-serif;
+  word-break: break-word;
 }
 
-.transacoes-header-value.income { color: var(--bd-green); }
+.transacoes-header-value.income  { color: var(--bd-green); }
 .transacoes-header-value.expense { color: var(--bd-red); }
 .transacoes-header-value.balance { color: #fff; }
 
@@ -87,49 +83,42 @@
 .tx-item-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-xs, 0.5rem);
   opacity: 0;
   transition: opacity 0.18s;
 }
 
-.tx-item:hover .tx-item-actions {
-  opacity: 1;
+/* Em mobile, sempre visível (sem hover) */
+@media (hover: none) {
+  .tx-item-actions { opacity: 1; }
 }
+
+.tx-item:hover .tx-item-actions { opacity: 1; }
 
 .tx-action-btn {
   background: rgba(255, 255, 255, 0.07);
   border: none;
   border-radius: 8px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: clamp(28px, 5vw, 32px);
+  height: clamp(28px, 5vw, 32px);
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.5);
   transition: background 0.15s, color 0.15s;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm, 0.8rem);
+  -webkit-tap-highlight-color: transparent;
 }
-
-.tx-action-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-}
-
-.tx-action-btn.danger:hover {
-  background: rgba(240, 106, 106, 0.18);
-  color: var(--bd-red);
-}
+.tx-action-btn:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.tx-action-btn.danger:hover { background: rgba(240, 106, 106, 0.18); color: var(--bd-red); }
 
 /* ── Empty state ── */
 .transacoes-empty {
   text-align: center;
-  padding: 3rem 1rem;
-  color: rgba(255, 255, 255, 0.3);
+  padding: clamp(2rem, 5vh, 3rem) 1rem;
+  color: rgba(255, 255, 255, 0.5);
 }
-
 .transacoes-empty i {
-  font-size: 2.5rem;
+  font-size: clamp(2rem, 5vw, 2.5rem);
   display: block;
   margin-bottom: 0.75rem;
   opacity: 0.5;
@@ -145,64 +134,47 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: var(--space-md, 1rem);
 }
 
 .tx-modal {
   background: #1a2236;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 18px;
-  padding: 1.75rem;
+  border-radius: clamp(14px, 2.5vw, 18px);
+  padding: clamp(1.25rem, 3vw, 1.75rem);
   width: 100%;
-  max-width: 400px;
+  max-width: min(400px, 95vw);
   animation: toastIn 0.2s ease;
 }
-
 .tx-modal h4 {
-  margin: 0 0 1.25rem;
+  margin: 0 0 var(--space-md, 1.25rem);
   font-family: 'Syne', sans-serif;
-  font-size: 1.1rem;
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
 }
 
-.tx-modal-input {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  padding: 0.65rem 0.9rem;
-  color: #fff;
-  font-size: 0.9rem;
-  width: 100%;
-  outline: none;
-  margin-bottom: 0.75rem;
-  transition: border-color 0.2s;
-}
-
-.tx-modal-input:focus {
-  border-color: var(--bd-teal);
-}
-
+.tx-modal-input,
 .tx-modal-select {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   padding: 0.65rem 0.9rem;
   color: #fff;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm, 0.9rem);
   width: 100%;
   outline: none;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.2s;
+  min-height: 42px;
+}
+.tx-modal-input:focus { border-color: var(--bd-teal); }
+.tx-modal-select {
+  margin-bottom: var(--space-md, 1.25rem);
   cursor: pointer;
   appearance: none;
 }
+.tx-modal-select option { background: #1a2236; }
 
-.tx-modal-select option {
-  background: #1a2236;
-}
-
-.tx-modal-actions {
-  display: flex;
-  gap: 0.75rem;
-}
+.tx-modal-actions { display: flex; gap: var(--space-sm, 0.75rem); }
 
 .tx-modal-btn {
   flex: 1;
@@ -210,27 +182,17 @@
   border-radius: 10px;
   border: none;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm, 0.9rem);
   cursor: pointer;
   transition: opacity 0.15s, transform 0.1s;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
 }
+.tx-modal-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.tx-modal-btn.cancel { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.7); }
+.tx-modal-btn.save   { background: var(--bd-teal); color: #0d1520; }
 
-.tx-modal-btn:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
-}
-
-.tx-modal-btn.cancel {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.tx-modal-btn.save {
-  background: var(--bd-teal);
-  color: #0d1520;
-}
-
-/* ── Animação toast in ── */
+/* ── Animações ── */
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(-10px); }
   to   { opacity: 1; transform: translateY(0); }

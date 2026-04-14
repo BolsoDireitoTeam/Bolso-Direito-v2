@@ -255,9 +255,9 @@ function pctColor(val) {
 }
 
 /* ── Componente ── */
-export default function EditarDadosFinanceiros({ financeiro, onSalvar }) {
+export default function EditarDadosFinanceiros() {
   const navigate = useNavigate();
-  const { configuracoes, salvarConfiguracoes, mostrarToast } = useFinance();
+  const { configuracoes, salvarConfiguracoes, mostrarToast, financeiro, salvarFinanceiro } = useFinance();
 
   /* Configurações do Cartão (Issue #21) */
   const [ccVencimento, setCcVencimento] = useState(configuracoes.diaVencimentoCartao ?? "");
@@ -267,14 +267,14 @@ export default function EditarDadosFinanceiros({ financeiro, onSalvar }) {
   /* Ganhos e gastos dinâmicos */
   const [ganhos, setGanhos] = useState(
     financeiro?.ganhos ?? [
-      { label: "Salário",     valor: "R$ 1.000,00", icon: "bi-building" },
-      { label: "Renda Extra", valor: "R$ 300,00",   icon: "bi-briefcase" },
+      { label: "Salário", valor: "", icon: "bi-building" },
+      { label: "Renda Extra", valor: "", icon: "bi-briefcase" },
     ]
   );
   const [gastos, setGastos] = useState(
     financeiro?.gastos ?? [
-      { label: "Condomínio / Aluguel", valor: "R$ 1.600,00", icon: "bi-house" },
-      { label: "Seguro",               valor: "R$ 200,00",   icon: "bi-shield-check" },
+      { label: "Condomínio / Aluguel", valor: "", icon: "bi-house" },
+      { label: "Seguro", valor: "", icon: "bi-shield-check" },
     ]
   );
 
@@ -331,9 +331,7 @@ export default function EditarDadosFinanceiros({ financeiro, onSalvar }) {
       diaRecebimentoSalario: parseInt(ccRecebimento) || null
     });
 
-    if (typeof onSalvar === "function") {
-      onSalvar({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta });
-    }
+    salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta });
 
     mostrarToast("Dados financeiros salvos com sucesso!", "success");
   };

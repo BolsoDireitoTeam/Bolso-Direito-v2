@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'chart.js'
 import Card from '../ui/Card'
-import { colors } from '../../data/mockData'
+import { colors } from '../../data/constants'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 

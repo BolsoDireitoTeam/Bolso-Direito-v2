@@ -9,7 +9,7 @@ import {
 } from 'chart.js'
 import Card from '../ui/Card'
 import SectionHeader from '../ui/SectionHeader'
-import { colors } from '../../data/mockData'
+import { colors } from '../../data/constants'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 

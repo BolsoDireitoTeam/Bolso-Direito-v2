@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
-import { sidebarNavItems } from '../../data/mockData'
+import { sidebarNavItems } from '../../data/constants'
 
 // Mapeando descrições para o menu mobile para ficar mais "premium"
 const navigationWithDesc = sidebarNavItems.map(item => {

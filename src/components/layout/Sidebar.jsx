@@ -1,9 +1,12 @@
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-import { sidebarNavItems } from '../../data/mockData'
+import { useFinance } from '../../hooks/useFinance'
+import { sidebarNavItems } from '../../data/constants'
+import MonthYearPicker from '../ui/MonthYearPicker'
 
-function Sidebar({ usuario }) {
+function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { usuario } = useFinance()
 
   const defaultNome = usuario?.nome || 'Usuário'
   const initials = defaultNome.substring(0, 2).toUpperCase()
@@ -28,6 +31,27 @@ function Sidebar({ usuario }) {
         ))}
       </ul>
 
+      {/* ── Filtro Global Mês/Ano ── */}
+      <div style={{ marginBottom: '1rem' }}>
+        <div style={{
+          fontSize: '0.65rem',
+          color: 'var(--bd-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.06em',
+          fontWeight: 600,
+          marginBottom: '0.45rem',
+          paddingLeft: '0.1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+        }}>
+          <i className="bi bi-calendar3" style={{ fontSize: '0.7rem' }} />
+          Período
+        </div>
+        <MonthYearPicker compact />
+      </div>
+
+      {/* ── Usuário ── */}
       <div className="sidebar-user" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
         {usuario?.avatar ? (
           <img src={usuario.avatar} alt="Avatar" className="sidebar-avatar" style={{width: '32px', height: '32px', borderRadius: '50%', border: 'none', objectFit: 'cover'}} />

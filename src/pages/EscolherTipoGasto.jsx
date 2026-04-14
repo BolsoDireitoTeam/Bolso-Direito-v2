@@ -7,12 +7,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useFinance } from '../hooks/useFinance'
-import { moeda, hojeISO } from '../utils/format'
+import { moeda, hojeISO, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 
 function EscolherTipoGasto() {
   const navigate = useNavigate()
-  const { transacaoPendente, setTransacaoPendente, adicionarGasto, mostrarToast } = useFinance()
+  const { transacaoPendente, setTransacaoPendente, adicionarGasto, mostrarToast, mesAnoFiltro } = useFinance()
+
+  const dataDefault = mesAnoFiltro === mesAtual()
+    ? hojeISO()
+    : `${mesAnoFiltro}-01`
 
   const [nome, setNome] = useState('')
   const [tipo, setTipo] = useState(null)      // 'debito' | 'credito'
@@ -40,7 +44,7 @@ function EscolherTipoGasto() {
         categoria: transacaoPendente.categoria,
         tipo,
         parcelas: tipo === 'credito' ? parcelas : 1,
-        data: hojeISO(),
+        data: dataDefault,
       })
       setTransacaoPendente(null)
 

@@ -4,7 +4,7 @@
 //  Origem: transacoes.js (313 linhas, v1) — reescrito em React
 // ============================================================
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useFinance } from '../hooks/useFinance'
 import { moeda, nomeMes, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
@@ -35,16 +35,20 @@ function ListaTransacoes() {
     removerGastoCredito,
     editarTransacao,
     mostrarToast,
+    mesAnoFiltro,
   } = useFinance()
 
-  const [filtroMes, setFiltroMes] = useState(mesAtual())
+  const [filtroMes, setFiltroMes] = useState(mesAnoFiltro)
   const [filtroCategoria, setFiltroCategoria] = useState('Todas as categorias')
   const [editando, setEditando] = useState(null)    // { tx } | null
   const [editNome, setEditNome] = useState('')
   const [editValor, setEditValor] = useState('')
   const [editCategoria, setEditCategoria] = useState('')
 
-  const meses = useMemo(() => gerarMeses(12), [])
+  const meses = useMemo(() => gerarMeses(24), [])
+
+  // Sincroniza com o filtro global quando ele mudar
+  useEffect(() => { setFiltroMes(mesAnoFiltro) }, [mesAnoFiltro])
 
   // Filtragem
   const txFiltradas = useMemo(() => {

@@ -12,7 +12,7 @@ import { moeda } from '../../utils/format'
  *  changePct    {string}  — ex: "+12,4%" (opcional)
  *  changeDirection {string} — "up" | "down"
  */
-function BalanceHero({ saldo = 0, receitas = 0, despesas = 0, investido = 'R$ 0', changePct, changeDirection = 'up' }) {
+function BalanceHero({ saldo = 0, receitas = 0, despesas = 0, investido = 0, changePct, changeDirection = 'up' }) {
   const changeText = changePct
     ? `${changePct} vs mês anterior`
     : 'Este mês'
@@ -36,7 +36,7 @@ function BalanceHero({ saldo = 0, receitas = 0, despesas = 0, investido = 'R$ 0'
         </div>
         <div>
           <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)' }}>Investido</div>
-          <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: 'var(--bd-purple)' }}>{investido}</div>
+          <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: 'var(--bd-purple)' }}>{moeda(investido)}</div>
         </div>
       </div>
     </div>
