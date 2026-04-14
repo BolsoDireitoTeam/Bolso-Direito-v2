@@ -1,0 +1,127 @@
+/* ============================================================
+   Bolso Direito v2 — teclado.css
+   Responsividade fluida — sem tamanhos estáticos
+   ============================================================ */
+
+.teclado-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100svh - 120px);
+  max-width: min(420px, 100%);
+  margin: 0 auto;
+  padding: var(--space-sm, 1rem);
+}
+
+/* ── Visor ── */
+.teclado-visor {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: clamp(12px, 2.5vw, 16px);
+  padding: clamp(1rem, 3vw, 1.5rem);
+  margin-bottom: var(--space-md, 1.25rem);
+  text-align: right;
+  min-height: clamp(80px, 12vh, 110px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.teclado-expressao {
+  font-size: var(--fs-sm, 0.85rem);
+  color: rgba(255, 255, 255, 0.4);
+  min-height: 1.2em;
+  margin-bottom: 0.4rem;
+  font-family: 'DM Mono', 'Courier New', monospace;
+}
+
+.teclado-valor {
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  color: #fff;
+  letter-spacing: -0.02em;
+  transition: color 0.2s;
+  word-break: break-all;
+}
+.teclado-valor.ganho { color: var(--bd-green); }
+.teclado-valor.gasto { color: var(--bd-red); }
+
+/* ── Campo de nome ── */
+.teclado-nome-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: var(--fs-md, 0.95rem);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: var(--space-sm, 1rem);
+  min-height: 48px; /* Touch target */
+}
+.teclado-nome-input:focus { border-color: var(--bd-teal); }
+.teclado-nome-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+/* ── Grid do teclado ── */
+.teclado-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(0.4rem, 1.5vw, 0.65rem);
+  margin-bottom: var(--space-sm, 1rem);
+}
+
+.teclado-btn {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: clamp(10px, 2vw, 14px);
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+  font-weight: 600;
+  font-family: 'Syne', sans-serif;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  min-height: clamp(52px, 10vw, 70px); /* Garante tamanho mínimo confortável */
+}
+.teclado-btn:active { transform: scale(0.93); }
+
+.teclado-btn.num {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+.teclado-btn.num:hover { background: rgba(255, 255, 255, 0.12); }
+
+.teclado-btn.op {
+  background: rgba(78, 227, 196, 0.12);
+  color: var(--bd-teal);
+}
+.teclado-btn.op:hover { background: rgba(78, 227, 196, 0.2); }
+
+.teclado-btn.del {
+  background: rgba(240, 106, 106, 0.1);
+  color: var(--bd-red);
+}
+.teclado-btn.del:hover { background: rgba(240, 106, 106, 0.18); }
+
+.teclado-btn.confirmar {
+  grid-column: 1 / -1;
+  aspect-ratio: auto;
+  padding: clamp(0.75rem, 2vh, 1rem);
+  background: var(--bd-teal);
+  color: #0d1520;
+  font-size: var(--fs-md, 1rem);
+  border-radius: clamp(10px, 2vw, 14px);
+  font-weight: 700;
+  min-height: clamp(48px, 7vh, 60px); /* Touch target generoso */
+}
+.teclado-btn.confirmar:hover {
+  background: #3dcfb1;
+  transform: translateY(-1px);
+}
+.teclado-btn.confirmar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}

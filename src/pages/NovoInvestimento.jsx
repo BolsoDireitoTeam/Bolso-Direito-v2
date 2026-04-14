@@ -1,52 +1,48 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useFinance } from '../hooks/useFinance'
+import { mesAtualLabel } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 
-function NovoInvestimento({ onAdd }) {
+function NovoInvestimento() {
   const navigate = useNavigate()
+  const { adicionarInvestimento } = useFinance()
+
   const [nome, setNome] = useState('')
   const [tipo, setTipo] = useState('')
   const [valor, setValor] = useState('')
+  const [taxaMensal, setTaxaMensal] = useState('0.80')
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    let color = 'var(--bd-teal)'
-    let icon = 'bi-safe'
+    let cor = 'var(--bd-teal)'
+    let icone = 'bi-safe'
     let labelTipo = 'Outros'
 
     switch (tipo) {
       case 'renda_fixa':
-        color = 'var(--bd-green)'; icon = 'bi-bank'; labelTipo = 'Renda Fixa'; break;
+        cor = 'var(--bd-green)'; icone = 'bi-bank'; labelTipo = 'Renda Fixa'; break
       case 'acoes':
-        color = 'var(--bd-red)'; icon = 'bi-graph-up-arrow'; labelTipo = 'Renda Variável'; break;
+        cor = 'var(--bd-red)'; icone = 'bi-graph-up-arrow'; labelTipo = 'Renda Variável'; break
       case 'fundos':
-        color = 'var(--bd-purple)'; icon = 'bi-buildings'; labelTipo = 'Renda Variável'; break;
+        cor = 'var(--bd-purple)'; icone = 'bi-buildings'; labelTipo = 'Renda Variável'; break
       case 'cripto':
-        color = '#f4c864'; icon = 'bi-currency-bitcoin'; labelTipo = 'Criptomoedas'; break;
+        cor = '#f4c864'; icone = 'bi-currency-bitcoin'; labelTipo = 'Criptomoedas'; break
       default:
-        break;
+        break
     }
 
-    const formattedValor = new Intl.NumberFormat('pt-BR', {
-      style: 'currency', currency: 'BRL'
-    }).format(Number(valor))
+    adicionarInvestimento({
+      nome,
+      tipo: labelTipo,
+      valorInicial: parseFloat(valor) || 0,
+      taxaMensal: parseFloat(taxaMensal) / 100 || 0,
+      icone,
+      cor,
+    })
 
-    const novoInvestimento = {
-      id: Date.now(),
-      name: nome,
-      type: labelTipo,
-      value: formattedValor,
-      returnLastWeek: '+R$ 0,00',
-      returnPct: '+0.00%',
-      color,
-      icon
-    }
-
-    if (onAdd) {
-      onAdd(novoInvestimento)
-    }
     navigate('/investimentos/carteira')
   }
 
@@ -55,7 +51,7 @@ function NovoInvestimento({ onAdd }) {
       <PageHeader
         greeting="Gerenciar Carteira"
         title="Novo Investimento"
-        dateBadge="Abril 2026"
+        dateBadge={mesAtualLabel()}
       >
         <button
           className="btn d-none d-lg-flex align-items-center gap-2"
@@ -82,7 +78,7 @@ function NovoInvestimento({ onAdd }) {
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label text-muted" style={{ fontSize: '0.85rem' }}>Nome do ativo</label>
+                <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--bd-muted)' }}>Nome do ativo</label>
                 <input
                   type="text"
                   className="form-control"
@@ -99,7 +95,7 @@ function NovoInvestimento({ onAdd }) {
               </div>
 
               <div className="mb-3">
-                <label className="form-label text-muted" style={{ fontSize: '0.85rem' }}>Tipo de Investimento</label>
+                <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--bd-muted)' }}>Tipo de Investimento</label>
                 <select
                   className="form-select"
                   required
@@ -119,8 +115,8 @@ function NovoInvestimento({ onAdd }) {
                 </select>
               </div>
 
-              <div className="mb-4">
-                <label className="form-label text-muted" style={{ fontSize: '0.85rem' }}>Valor Inicial (R$)</label>
+              <div className="mb-3">
+                <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--bd-muted)' }}>Valor Inicial (R$)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -135,6 +131,29 @@ function NovoInvestimento({ onAdd }) {
                     color: 'var(--bd-text)'
                   }}
                 />
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--bd-muted)' }}>
+                  Taxa Mensal (%)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="form-control"
+                  placeholder="0.80"
+                  value={taxaMensal}
+                  onChange={(e) => setTaxaMensal(e.target.value)}
+                  style={{
+                    background: 'rgba(0,0,0,0.1)',
+                    border: '1px solid var(--bd-border)',
+                    color: 'var(--bd-text)'
+                  }}
+                />
+                <small style={{ color: 'var(--bd-muted)', fontSize: '0.75rem' }}>
+                  Taxa fixa de rendimento mensal. Pode ser editada depois.
+                </small>
               </div>
 
               <div className="d-grid gap-2 d-md-flex justify-content-md-end">

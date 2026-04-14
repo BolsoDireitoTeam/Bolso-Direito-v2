@@ -1,36 +1,28 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
-const painelItems = [
-  {
-    path: '/',
-    icon: 'bi-grid-1x2',
-    label: 'Visão Geral',
-    description: 'Resumo do seu mês',
-    premium: false,
-  },
-  {
-    path: '/metas',
-    icon: 'bi-bullseye',
-    label: 'Metas',
-    description: 'Acompanhe seus objetivos',
-    premium: false,
-  },
-  {
-    path: '/investimentos',
-    icon: 'bi-graph-up-arrow',
-    label: 'Investimentos',
-    description: 'Carteira e rentabilidade',
-    premium: true,
-  },
-]
+import { sidebarNavItems } from '../../data/constants'
+
+// Mapeando descrições para o menu mobile para ficar mais "premium"
+const navigationWithDesc = sidebarNavItems.map(item => {
+  const descriptions = {
+    '/': 'Resumo do seu mês',
+    '/transacoes': 'Histórico financeiro',
+    '/view-mensal': 'Fluxo por período',
+    '/metas': 'Seus objetivos',
+    '/investimentos': 'Carteira e aportes'
+  }
+  return { ...item, description: descriptions[item.path] || '' }
+})
 
 function BottomNav({ onAddClick }) {
   const [painelOpen, setPainelOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
-  const isPainelActive = ['/', '/metas', '/investimentos'].some(path => location.pathname === path || (path !== '/' && location.pathname.startsWith(path)))
+  const painelItems = navigationWithDesc
+
+  const isPainelActive = painelItems.some(item => location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
 
   const handlePainelItem = (path) => {
     setPainelOpen(false)

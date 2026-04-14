@@ -9,6 +9,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 
 // Estilos do Bolso Direito (complementa Bootstrap)
 import './styles/bolso-direito.css'
+import './styles/metas.css'
+import './styles/transacoes.css'
+import './styles/teclado.css'
 
 // Chart.js defaults (mesmas configs do HTML original)
 ChartJS.defaults.font.family = "'DM Sans', sans-serif"
