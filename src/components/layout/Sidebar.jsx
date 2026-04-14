@@ -10,7 +10,12 @@ function Sidebar() {
 
   const defaultNome = usuario?.nome || 'Usuário'
   const initials = defaultNome.substring(0, 2).toUpperCase()
-  const defaultEmail = usuario?.email || `${defaultNome.replace(/\s+/g, '').toLowerCase()}@bolsodireito.com`
+
+  // Exibe apenas a parte antes do @ do email (ex: pedromagno04@gmail.com → pedromagno04)
+  const rawEmail = usuario?.email || ''
+  const displayHandle = rawEmail.includes('@')
+    ? rawEmail.split('@')[0]
+    : rawEmail || defaultNome.replace(/\s+/g, '').toLowerCase()
 
   return (
     <aside className="sidebar">
@@ -58,9 +63,24 @@ function Sidebar() {
         ) : (
           <div className="sidebar-avatar">{initials}</div>
         )}
-        <div className="sidebar-user-info">
-          <strong>{defaultNome}</strong>
-          <small>{defaultEmail}</small>
+        <div className="sidebar-user-info" style={{ minWidth: 0, overflow: 'hidden' }}>
+          <strong style={{
+            display: 'block',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)',
+            maxWidth: '100%',
+          }}>{defaultNome}</strong>
+          <small style={{
+            display: 'block',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            fontSize: 'clamp(0.62rem, 1vw, 0.7rem)',
+            color: 'var(--bd-muted)',
+            maxWidth: '100%',
+          }}>{displayHandle}</small>
         </div>
       </div>
     </aside>
