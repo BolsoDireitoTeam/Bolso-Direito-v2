@@ -13,12 +13,21 @@ import { colors } from '../../data/mockData'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
+import { useState } from 'react'
+
 function BarChart({ data }) {
+  const [year, setYear] = useState('2026')
+
+  // Gera dados levemente diferentes caso não seja 2026
+  const activeData = year === '2026' 
+    ? data.data 
+    : data.data.map(val => Math.max(0, val - 200))
+
   const chartData = {
     labels: data.labels,
     datasets: [{
       label: 'Despesas',
-      data: data.data,
+      data: activeData,
       backgroundColor: colors.purple,
       borderRadius: 8,
       barPercentage: 0.6,
@@ -35,34 +44,40 @@ function BarChart({ data }) {
     },
   }
 
+  const btnActiveStyle = {
+    fontSize: '0.72rem',
+    background: 'rgba(78,227,196,0.12)',
+    color: 'var(--bd-teal)',
+    border: '1px solid rgba(78,227,196,0.25)',
+    borderRadius: '8px',
+  }
+
+  const btnInactiveStyle = {
+    fontSize: '0.72rem',
+    background: 'transparent',
+    color: 'var(--bd-muted)',
+    border: '1px solid var(--bd-border)',
+    borderRadius: '8px',
+  }
+
   return (
     <Card>
       <div className="d-flex align-items-center justify-content-between mb-3">
         <span className="section-title">Despesas por Mês</span>
         <div className="d-flex gap-1">
           <button
-            className="btn btn-sm px-2 py-1 active"
-            style={{
-              fontSize: '0.72rem',
-              background: 'rgba(78,227,196,0.12)',
-              color: 'var(--bd-teal)',
-              border: '1px solid rgba(78,227,196,0.25)',
-              borderRadius: '8px',
-            }}
+            className="btn btn-sm px-2 py-1"
+            style={year === '2026' ? btnActiveStyle : btnInactiveStyle}
+            onClick={() => setYear('2026')}
           >
-            2025
+            2026
           </button>
           <button
             className="btn btn-sm px-2 py-1"
-            style={{
-              fontSize: '0.72rem',
-              background: 'transparent',
-              color: 'var(--bd-muted)',
-              border: '1px solid var(--bd-border)',
-              borderRadius: '8px',
-            }}
+            style={year === '2025' ? btnActiveStyle : btnInactiveStyle}
+            onClick={() => setYear('2025')}
           >
-            2024
+            2025
           </button>
         </div>
       </div>

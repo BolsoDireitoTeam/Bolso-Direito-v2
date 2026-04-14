@@ -229,7 +229,7 @@ function App() {
                 <Topbar />
                 <main className="main-content">
                   <Routes>
-                    <Route path="/" element={<VisaoGeral onAddClick={toggleMenu} usuario={usuario} />} />
+                    <Route path="/" element={<VisaoGeral onAddClick={toggleMenu} usuario={usuario} metas={metas} />} />
                     <Route path="/perfil" element={<User usuario={usuario} />} />
                     <Route path="/editar-dados-cadastrais" element={<EditarInfoPessoal usuario={usuario} onSalvar={handleSalvarUsuario} />} />
                     <Route path="/editar-dados-financeiros" element={<EditarDadosFinanceiros financeiro={financeiro} onSalvar={handleSalvarFinanceiro} />} />

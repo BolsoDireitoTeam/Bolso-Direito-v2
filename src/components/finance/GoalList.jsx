@@ -7,8 +7,6 @@ function GoalList({ goals }) {
     <Card>
       <SectionHeader
         title="Metas"
-        linkText="Nova"
-        linkIcon="bi-plus"
       />
       {goals.map(goal => (
         <GoalItem key={goal.id} goal={goal} />

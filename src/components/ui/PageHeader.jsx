@@ -4,10 +4,12 @@ function PageHeader({ greeting, title, dateBadge, children }) {
       <div>
         <p className="greeting">{greeting}</p>
         <h1>{title}</h1>
-        <span className="date-badge">
-          <i className="bi bi-calendar3 me-1"></i>
-          {dateBadge}
-        </span>
+        {dateBadge && (
+          <span className="date-badge">
+            <i className="bi bi-calendar3 me-1"></i>
+            {dateBadge}
+          </span>
+        )}
       </div>
       {children}
     </div>

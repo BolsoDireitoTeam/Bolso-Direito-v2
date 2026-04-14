@@ -7,8 +7,6 @@ function TransactionList({ transactions }) {
     <Card>
       <SectionHeader
         title="Últimas Transações"
-        linkText="Ver tudo"
-        linkIcon="bi-arrow-right"
       />
       {transactions.map(tx => (
         <TransactionItem key={tx.id} tx={tx} />

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import PageHeader from '../components/ui/PageHeader'
 import StatCard from '../components/ui/StatCard'
 import BalanceHero from '../components/finance/BalanceHero'
@@ -10,23 +11,54 @@ import LineChart from '../components/charts/LineChart'
 import RadarChart from '../components/charts/RadarChart'
 import GroupedBarChart from '../components/charts/GroupedBarChart'
 
-import {
-  balanceData,
-  statCards,
-  transactions,
-  budgetCategories,
-  goals,
-  chartData,
-} from '../data/mockData'
+import { mockDataByMonth } from '../data/mockData'
 
-function VisaoGeral({ onAddClick, usuario }) {
+function VisaoGeral({ onAddClick, usuario, metas = [] }) {
+  const [selectedMonth, setSelectedMonth] = useState('Abril 2026')
+  const meses = ['Janeiro 2026', 'Fevereiro 2026', 'Março 2026', 'Abril 2026', 'Maio 2026']
+
+  const monthFilterSelect = (
+    <select 
+      value={selectedMonth}
+      onChange={(e) => setSelectedMonth(e.target.value)}
+      style={{
+        background: 'transparent',
+        border: 'none',
+        color: 'inherit',
+        fontWeight: 'inherit',
+        outline: 'none',
+        cursor: 'pointer',
+        fontSize: 'inherit',
+        fontFamily: 'inherit'
+      }}
+    >
+      {meses.map(mes => <option key={mes} value={mes} style={{color: '#000'}}>{mes}</option>)}
+    </select>
+  )
+
+  const mappedGoals = metas.map(m => {
+    const pct = m.targetValue > 0 ? Math.round((m.currentValue / m.targetValue) * 100) : 0;
+    return {
+      id: m.id,
+      emoji: m.emoji,
+      name: m.name,
+      pct,
+      current: m.currentValue,
+      target: m.targetValue,
+      color: m.color
+    };
+  })
+
+  const activeData = mockDataByMonth[selectedMonth] || mockDataByMonth['Abril 2026'];
+  const { balanceData, statCards, transactions, budgetCategories, chartData } = activeData;
+
   return (
     <>
       {/* Page Header */}
       <PageHeader
         greeting={`Olá, ${usuario ? usuario.nome : 'Usuário'}!`}
         title="Visão Geral"
-        dateBadge="Abril 2026"
+        dateBadge={monthFilterSelect}
       >
       </PageHeader>
 
@@ -67,7 +99,7 @@ function VisaoGeral({ onAddClick, usuario }) {
           <BudgetList categories={budgetCategories} />
         </div>
         <div className="col-12 col-sm-6 col-lg-3">
-          <GoalList goals={goals} />
+          <GoalList goals={mappedGoals} />
         </div>
       </div>
 

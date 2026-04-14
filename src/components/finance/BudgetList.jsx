@@ -7,8 +7,6 @@ function BudgetList({ categories }) {
     <Card>
       <SectionHeader
         title="Orçamento"
-        linkText="Editar"
-        linkIcon="bi-pencil"
       />
       {categories.map(cat => (
         <BudgetCategory key={cat.name} category={cat} />

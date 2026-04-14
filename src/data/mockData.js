@@ -7,40 +7,40 @@
 
 // ── Cores do design system ──────────────────────────────────────
 export const colors = {
-  teal:   '#4ee3c4',
+  teal: '#4ee3c4',
   purple: '#ACB6E5',
-  red:    '#f06a6a',
-  green:  '#4ee3a0',
+  red: '#f06a6a',
+  green: '#4ee3a0',
   yellow: '#f4c864',
-  navy:   '#1a2236',
+  navy: '#1a2236',
 }
 
 // ── Transações ──────────────────────────────────────────────────
 export const transactions = [
-  { id: 1, name: 'Salário',          date: '01 Jul, 2025', amount: '+R$ 5.800',    type: 'credit', icon: 'bi-building',           iconBg: 'rgba(78,227,160,0.12)', iconColor: 'var(--bd-green)' },
-  { id: 2, name: 'Mercado Extra',    date: '02 Jul, 2025', amount: '-R$ 345',      type: 'debit',  icon: 'bi-cart3',              iconBg: 'rgba(240,106,106,0.12)', iconColor: 'var(--bd-red)' },
-  { id: 3, name: 'Aluguel',          date: '05 Jul, 2025', amount: '-R$ 1.500',    type: 'debit',  icon: 'bi-house',              iconBg: 'rgba(240,106,106,0.12)', iconColor: 'var(--bd-red)' },
-  { id: 4, name: 'Conta de Luz',     date: '07 Jul, 2025', amount: '-R$ 187',      type: 'debit',  icon: 'bi-lightning-charge',   iconBg: 'rgba(172,182,229,0.12)', iconColor: 'var(--bd-purple)' },
-  { id: 5, name: 'Spotify',          date: '08 Jul, 2025', amount: '-R$ 21,90',    type: 'debit',  icon: 'bi-music-note-beamed',  iconBg: 'rgba(240,106,106,0.12)', iconColor: 'var(--bd-red)' },
-  { id: 6, name: 'Freelance Design', date: '10 Jul, 2025', amount: '+R$ 800',      type: 'credit', icon: 'bi-cash-stack',         iconBg: 'rgba(78,227,160,0.12)', iconColor: 'var(--bd-green)' },
+  { id: 1, name: 'Salário', date: '01 Jul, 2025', amount: '+R$ 5.800', type: 'credit', icon: 'bi-building', iconBg: 'rgba(78,227,160,0.12)', iconColor: 'var(--bd-green)' },
+  { id: 2, name: 'Mercado Extra', date: '02 Jul, 2025', amount: '-R$ 345', type: 'debit', icon: 'bi-cart3', iconBg: 'rgba(240,106,106,0.12)', iconColor: 'var(--bd-red)' },
+  { id: 3, name: 'Aluguel', date: '05 Jul, 2025', amount: '-R$ 1.500', type: 'debit', icon: 'bi-house', iconBg: 'rgba(240,106,106,0.12)', iconColor: 'var(--bd-red)' },
+  { id: 4, name: 'Conta de Luz', date: '07 Jul, 2025', amount: '-R$ 187', type: 'debit', icon: 'bi-lightning-charge', iconBg: 'rgba(172,182,229,0.12)', iconColor: 'var(--bd-purple)' },
+  { id: 5, name: 'Spotify', date: '08 Jul, 2025', amount: '-R$ 21,90', type: 'debit', icon: 'bi-music-note-beamed', iconBg: 'rgba(240,106,106,0.12)', iconColor: 'var(--bd-red)' },
+  { id: 6, name: 'Freelance Design', date: '10 Jul, 2025', amount: '+R$ 800', type: 'credit', icon: 'bi-cash-stack', iconBg: 'rgba(78,227,160,0.12)', iconColor: 'var(--bd-green)' },
 ]
 
 // ── Orçamento por Categoria ─────────────────────────────────────
 export const budgetCategories = [
-  { name: 'Moradia',      spent: 1500, total: 1500, color: 'var(--bd-red)' },
-  { name: 'Alimentação',  spent: 800,  total: 1000, color: 'var(--bd-teal)' },
-  { name: 'Transporte',   spent: 300,  total: 500,  color: 'var(--bd-teal)' },
-  { name: 'Lazer',        spent: 400,  total: 400,  color: 'var(--bd-red)' },
-  { name: 'Saúde',        spent: 120,  total: 300,  color: 'var(--bd-green)' },
-  { name: 'Educação',     spent: 80,   total: 200,  color: 'var(--bd-green)' },
+  { name: 'Moradia', spent: 1500, total: 1500, color: 'var(--bd-red)' },
+  { name: 'Alimentação', spent: 800, total: 1000, color: 'var(--bd-teal)' },
+  { name: 'Transporte', spent: 300, total: 500, color: 'var(--bd-teal)' },
+  { name: 'Lazer', spent: 400, total: 400, color: 'var(--bd-red)' },
+  { name: 'Saúde', spent: 120, total: 300, color: 'var(--bd-green)' },
+  { name: 'Educação', spent: 80, total: 200, color: 'var(--bd-green)' },
 ]
 
 // ── Metas ───────────────────────────────────────────────────────
 export const goals = [
-  { id: 1, emoji: '🏖️', name: 'Viagem',  current: 3250,  target: 5000,  pct: 65, color: 'var(--bd-teal)' },
-  { id: 2, emoji: '🚗', name: 'Carro Novo', current: 8800,  target: 40000, pct: 22, color: 'var(--bd-purple)' },
+  { id: 1, emoji: '🏖️', name: 'Viagem', current: 3250, target: 5000, pct: 65, color: 'var(--bd-teal)' },
+  { id: 2, emoji: '🚗', name: 'Carro Novo', current: 8800, target: 40000, pct: 22, color: 'var(--bd-purple)' },
   { id: 3, emoji: '🏠', name: 'Reserva', current: 14400, target: 30000, pct: 48, color: '#f4c864' },
-  { id: 4, emoji: '📱', name: 'iPhone',  current: 5400,  target: 6000,  pct: 90, color: 'var(--bd-green)' },
+  { id: 4, emoji: '📱', name: 'iPhone', current: 5400, target: 6000, pct: 90, color: 'var(--bd-green)' },
 ]
 
 // ── Dados do Saldo (Balance Hero) ───────────────────────────────
@@ -56,10 +56,10 @@ export const balanceData = {
 
 // ── Stat Cards ──────────────────────────────────────────────────
 export const statCards = [
-  { title: 'Receitas',   value: 'R$ 5.800', valueClass: 'income',  icon: 'bi-arrow-down-circle',    iconVariant: 'green',  meta: { icon: 'bi-arrow-up-right', text: '+8% vs jun', colorClass: 'text-success' } },
-  { title: 'Despesas',   value: 'R$ 3.100', valueClass: 'expense', icon: 'bi-arrow-up-circle',      iconVariant: 'red',    meta: { icon: 'bi-arrow-down-right', text: '+3% vs jun', colorClass: 'text-danger' } },
-  { title: 'Economias',  value: 'R$ 1.450', valueClass: 'saving',  icon: 'bi-piggy-bank',           iconVariant: 'purple', meta: { text: 'Taxa:', boldText: '25%', boldColor: 'var(--bd-purple)' } },
-  { title: 'Fatura CC',  value: 'R$ 1.820', valueClass: '',        icon: 'bi-credit-card-2-front',  iconVariant: 'yellow', meta: { text: 'Vence em', boldText: '5 dias', boldColor: '#f4c864' } },
+  { title: 'Receitas', value: 'R$ 5.800', valueClass: 'income', icon: 'bi-arrow-down-circle', iconVariant: 'green', meta: { icon: 'bi-arrow-up-right', text: '+8% vs jun', colorClass: 'text-success' } },
+  { title: 'Despesas', value: 'R$ 3.100', valueClass: 'expense', icon: 'bi-arrow-up-circle', iconVariant: 'red', meta: { icon: 'bi-arrow-down-right', text: '+3% vs jun', colorClass: 'text-danger' } },
+  { title: 'Economias', value: 'R$ 1.450', valueClass: 'saving', icon: 'bi-piggy-bank', iconVariant: 'purple', meta: { text: 'Taxa:', boldText: '25%', boldColor: 'var(--bd-purple)' } },
+  { title: 'Fatura CC', value: 'R$ 1.820', valueClass: '', icon: 'bi-credit-card-2-front', iconVariant: 'yellow', meta: { text: 'Vence em', boldText: '5 dias', boldColor: '#f4c864' } },
 ]
 
 // ── Dados dos Gráficos ──────────────────────────────────────────
@@ -91,17 +91,17 @@ export const chartData = {
 
 // ── Navegação Sidebar ───────────────────────────────────────────
 export const sidebarNavItems = [
-  { label: 'Visão Geral', icon: 'bi-grid-1x2',        path: '/' },
-  { label: 'Metas',       icon: 'bi-bullseye',         path: '/metas' },
-  { label: 'Investimentos',icon: 'bi-graph-up-arrow',  path: '/investimentos' },
+  { label: 'Visão Geral', icon: 'bi-grid-1x2', path: '/' },
+  { label: 'Metas', icon: 'bi-bullseye', path: '/metas' },
+  { label: 'Investimentos', icon: 'bi-graph-up-arrow', path: '/investimentos' },
 ]
 
 // ── Ações do Action Sheet ───────────────────────────────────────
 export const actionSheetActions = [
-  { label: 'Novo Ganho',       icon: 'bi-plus-circle' },
-  { label: 'Novo Gasto',       icon: 'bi-dash-circle' },
+  { label: 'Novo Ganho', icon: 'bi-plus-circle' },
+  { label: 'Novo Gasto', icon: 'bi-dash-circle' },
   { label: 'Importar Extrato', icon: 'bi-upload' },
-  { label: 'Importar Fatura',  icon: 'bi-credit-card-2-front' },
+  { label: 'Importar Fatura', icon: 'bi-credit-card-2-front' },
 ]
 
 // ── Investimentos ───────────────────────────────────────────────
@@ -111,3 +111,62 @@ export const investmentsData = [
   { id: 3, name: 'Ações PETR4', type: 'Renda Variável', value: 'R$ 2.100,00', returnLastWeek: '-R$ 45,00', returnPct: '-2.10%', color: 'var(--bd-red)', icon: 'bi-graph-down-arrow' },
   { id: 4, name: 'CDB Banco Inter', type: 'Renda Fixa', value: 'R$ 8.200,00', returnLastWeek: '+R$ 18,20', returnPct: '+0.22%', color: 'var(--bd-green)', icon: 'bi-bank' },
 ]
+
+// ── Dados mockados por mês (Dinâmicos) ──────────────────────────
+export const mockDataByMonth = {
+  'Janeiro 2026': {
+    balanceData: { ...balanceData, saldo: 'R$ 1.800,00', receitas: 'R$ 5.200', despesas: 'R$ 3.400', changePct: '+2,1%', changeDirection: 'up' },
+    transactions: transactions.map(t => ({ ...t, date: t.date.replace('Jul, 2025', 'Jan, 2026').replace('Jul', 'Jan') })),
+    budgetCategories: budgetCategories.map(c => ({ ...c, spent: Math.max(0, c.spent - 150) })),
+    statCards: [
+      { ...statCards[0], value: 'R$ 5.200' },
+      { ...statCards[1], value: 'R$ 3.400' },
+      { ...statCards[2], value: 'R$ 800' },
+      { ...statCards[3], value: 'R$ 1.100' },
+    ],
+    chartData: { ...chartData, barChart: { ...chartData.barChart, data: [1100, 1050, 950, 800, 1200, 900, 1250] } }
+  },
+  'Fevereiro 2026': {
+    balanceData: { ...balanceData, saldo: 'R$ 2.050,00', receitas: 'R$ 5.200', despesas: 'R$ 3.150', changePct: '+5,4%', changeDirection: 'up' },
+    transactions: transactions.map(t => ({ ...t, date: t.date.replace('Jul, 2025', 'Fev, 2026').replace('Jul', 'Fev') })),
+    budgetCategories: budgetCategories.map(c => ({ ...c, spent: Math.max(0, c.spent - 80) })),
+    statCards: [
+      { ...statCards[0], value: 'R$ 5.200' },
+      { ...statCards[1], value: 'R$ 3.150' },
+      { ...statCards[2], value: 'R$ 1.050' },
+      { ...statCards[3], value: 'R$ 1.500' },
+    ],
+    chartData: { ...chartData, barChart: { ...chartData.barChart, data: [1000, 1150, 850, 700, 1300, 1000, 1150] } }
+  },
+  'Março 2026': {
+    balanceData: { ...balanceData, saldo: 'R$ 1.500,00', receitas: 'R$ 5.200', despesas: 'R$ 3.700', changePct: '-12,4%', changeDirection: 'down' },
+    transactions: transactions.map(t => ({ ...t, date: t.date.replace('Jul, 2025', 'Mar, 2026').replace('Jul', 'Mar') })),
+    budgetCategories: budgetCategories.map(c => ({ ...c, spent: Math.min(c.total, c.spent + 100) })),
+    statCards: [
+      { ...statCards[0], value: 'R$ 5.200' },
+      { ...statCards[1], value: 'R$ 3.700' },
+      { ...statCards[2], value: 'R$ 500' },
+      { ...statCards[3], value: 'R$ 2.100' },
+    ],
+    chartData: { ...chartData, barChart: { ...chartData.barChart, data: [1300, 850, 1150, 900, 1050, 850, 1350] } }
+  },
+  'Abril 2026': {
+    balanceData,
+    transactions: transactions.map(t => ({ ...t, date: t.date.replace('Jul, 2025', 'Abr, 2026').replace('Jul', 'Abr') })),
+    budgetCategories,
+    statCards,
+    chartData
+  },
+  'Maio 2026': {
+    balanceData: { ...balanceData, saldo: 'R$ 4.100,00', receitas: 'R$ 6.100', despesas: 'R$ 2.000', changePct: '+25,0%', changeDirection: 'up' },
+    transactions: transactions.map(t => ({ ...t, date: t.date.replace('Jul, 2025', 'Mai, 2026').replace('Jul', 'Mai') })),
+    budgetCategories: budgetCategories.map(c => ({ ...c, spent: Math.max(0, c.spent - 200) })),
+    statCards: [
+      { ...statCards[0], value: 'R$ 6.100' },
+      { ...statCards[1], value: 'R$ 2.000' },
+      { ...statCards[2], value: 'R$ 2.100' },
+      { ...statCards[3], value: 'R$ 800' },
+    ],
+    chartData: { ...chartData, barChart: { ...chartData.barChart, data: [900, 1250, 750, 600, 1400, 1100, 1000] } }
+  }
+}
