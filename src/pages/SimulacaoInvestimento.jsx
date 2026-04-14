@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
+import LineChart from '../components/charts/LineChart'
 
 function SimulacaoInvestimento() {
   const navigate = useNavigate()
@@ -43,7 +44,28 @@ function SimulacaoInvestimento() {
         return;
     }
 
-    // Juros compostos: M = C * (1 + i)^t
+    // Geração de curva para o gráfico
+    const labels = []
+    const chartDataValues = []
+    
+    // Passo inteligente: se for muito tempo, plota por ano
+    const step = tempoNum > 36 ? 12 : 1;
+    
+    for (let i = 0; i <= tempoNum; i += step) {
+      if (i === 0) {
+        labels.push('Hoje')
+        chartDataValues.push(valorNum)
+      } else {
+        labels.push(tempoNum > 36 ? `Ano ${i/12}` : `Mês ${i}`)
+        chartDataValues.push(valorNum * Math.pow(1 + taxaMensal, i))
+      }
+    }
+    // Garante que o último mês entra se caiu fora do step
+    if (tempoNum % step !== 0 && tempoNum > 0) {
+       labels.push(tempoNum > 36 ? `Ano ${(tempoNum/12).toFixed(1)}` : `Mês ${tempoNum}`)
+       chartDataValues.push(valorNum * Math.pow(1 + taxaMensal, tempoNum))
+    }
+
     const montante = valorNum * Math.pow(1 + taxaMensal, tempoNum)
     const lucro = montante - valorNum
 
@@ -51,7 +73,8 @@ function SimulacaoInvestimento() {
       montanteFormated: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(montante),
       lucroFormated: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(lucro),
       taxa: (taxaMensal * 100).toFixed(1) + '% a.m.',
-      nomeTipo
+      nomeTipo,
+      chartData: { labels, data: chartDataValues }
     })
   }
 
@@ -189,8 +212,12 @@ function SimulacaoInvestimento() {
                 <h2 className="display-4 fw-bold mb-3" style={{ color: 'var(--bd-teal)', fontFamily: "'Syne', sans-serif" }}>
                   {resultado.montanteFormated}
                 </h2>
-                <div className="d-inline-flex px-3 py-2 rounded-pill mx-auto" style={{ background: 'rgba(78,227,196,0.1)', color: 'var(--bd-teal)', border: '1px solid rgba(78,227,196,0.3)' }}>
+                <div className="d-inline-flex px-3 py-2 rounded-pill mx-auto mb-4" style={{ background: 'rgba(78,227,196,0.1)', color: 'var(--bd-teal)', border: '1px solid rgba(78,227,196,0.3)' }}>
                   <i className="bi bi-piggy-bank me-2"></i> Lucro de {resultado.lucroFormated}
+                </div>
+                
+                <div style={{ marginTop: 'auto', textAlign: 'left' }}>
+                  <LineChart data={resultado.chartData} />
                 </div>
               </div>
             </Card>

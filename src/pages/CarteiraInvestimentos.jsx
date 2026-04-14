@@ -1,13 +1,19 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 
 function CarteiraInvestimentos({ onAddClick, investimentos }) {
+  const [filtro, setFiltro] = useState('Todos')
+  const categorias = ['Todos', 'Renda Fixa', 'Renda Variável', 'Criptomoedas']
+  
+  const filteredInvestimentos = investimentos.filter(inv => filtro === 'Todos' || inv.type === filtro)
+
   return (
     <>
       <PageHeader
         greeting="Minha Carteira"
-        title="Ativos Actuais"
+        title="Ativos Atuais"
         dateBadge="Abril 2026"
       >
         <div className="d-flex align-items-center gap-2">
@@ -44,9 +50,30 @@ function CarteiraInvestimentos({ onAddClick, investimentos }) {
         </div>
       </PageHeader>
 
+      {/* Filtros */}
+      <div className="d-flex gap-2 mb-4 overflow-auto pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {categorias.map(cat => (
+          <button
+            key={cat}
+            className="btn btn-sm px-3 py-1"
+            style={{
+              borderRadius: '20px',
+              border: filtro === cat ? '1px solid var(--bd-teal)' : '1px solid rgba(255,255,255,0.1)',
+              background: filtro === cat ? 'rgba(78,227,196,0.1)' : 'transparent',
+              color: filtro === cat ? 'var(--bd-teal)' : 'var(--bd-muted)',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s'
+            }}
+            onClick={() => setFiltro(cat)}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       {/* Row for cards (Responsive Mobile-first) */}
       <div className="row g-3">
-        {investimentos.map((inv) => {
+        {filteredInvestimentos.map((inv) => {
           const isPositive = inv.returnLastWeek.includes('+');
           return (
             <div className="col-12 col-md-6 col-lg-4" key={inv.id}>

@@ -15,7 +15,7 @@ import { colors } from '../../data/mockData'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
-function LineChart({ data }) {
+function LineChart({ data, title = "Saldo Acumulado" }) {
   const chartData = {
     labels: data.labels,
     datasets: [{
@@ -43,7 +43,7 @@ function LineChart({ data }) {
 
   return (
     <Card>
-      <SectionHeader title="Saldo Acumulado" />
+      <SectionHeader title={title} />
       <div className="chart-wrap-sm">
         <Line data={chartData} options={options} />
       </div>
