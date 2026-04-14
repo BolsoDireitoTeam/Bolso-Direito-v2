@@ -1,0 +1,141 @@
+/* ============================================================
+   Bolso Direito v2 — teclado.css
+   Estilos da tela de teclado numérico (TecladoValores)
+   ============================================================ */
+
+.teclado-page {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 120px);
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* ── Visor ── */
+.teclado-visor {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.5rem 1.5rem 1.25rem;
+  margin-bottom: 1.25rem;
+  text-align: right;
+  min-height: 100px;
+}
+
+.teclado-expressao {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+  min-height: 1.2em;
+  margin-bottom: 0.4rem;
+  font-family: 'DM Mono', 'Courier New', monospace;
+}
+
+.teclado-valor {
+  font-size: 2.2rem;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  color: #fff;
+  letter-spacing: -0.02em;
+  transition: color 0.2s;
+}
+
+.teclado-valor.ganho { color: var(--bd-green); }
+.teclado-valor.gasto { color: var(--bd-red); }
+
+/* ── Campo de nome ── */
+.teclado-nome-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 0.95rem;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 1rem;
+}
+
+.teclado-nome-input:focus {
+  border-color: var(--bd-teal);
+}
+
+.teclado-nome-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Grid do teclado ── */
+.teclado-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.teclado-btn {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  font-family: 'Syne', sans-serif;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teclado-btn:active {
+  transform: scale(0.93);
+}
+
+.teclado-btn.num {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.teclado-btn.num:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.teclado-btn.op {
+  background: rgba(78, 227, 196, 0.12);
+  color: var(--bd-teal);
+}
+
+.teclado-btn.op:hover {
+  background: rgba(78, 227, 196, 0.2);
+}
+
+.teclado-btn.del {
+  background: rgba(240, 106, 106, 0.1);
+  color: var(--bd-red);
+}
+
+.teclado-btn.del:hover {
+  background: rgba(240, 106, 106, 0.18);
+}
+
+.teclado-btn.confirmar {
+  grid-column: 1 / -1;
+  aspect-ratio: auto;
+  padding: 0.9rem;
+  background: var(--bd-teal);
+  color: #0d1520;
+  font-size: 1rem;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.teclado-btn.confirmar:hover {
+  background: #3dcfb1;
+  transform: translateY(-1px);
+}
+
+.teclado-btn.confirmar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
