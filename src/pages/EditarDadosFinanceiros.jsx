@@ -264,6 +264,9 @@ export default function EditarDadosFinanceiros() {
   const [ccLimite, setCcLimite] = useState(configuracoes.limiteCartao ?? "");
   const [ccRecebimento, setCcRecebimento] = useState(configuracoes.diaRecebimentoSalario ?? "");
 
+  /* Virada de mês configurável */
+  const [diaVirada, setDiaVirada] = useState(configuracoes.diaViradaMes ?? "");
+
   /* Ganhos e gastos dinâmicos */
   const [ganhos, setGanhos] = useState(
     financeiro?.ganhos ?? [
@@ -301,6 +304,7 @@ export default function EditarDadosFinanceiros() {
     if (configuracoes.diaVencimentoCartao) setCcVencimento(configuracoes.diaVencimentoCartao);
     if (configuracoes.limiteCartao) setCcLimite(configuracoes.limiteCartao);
     if (configuracoes.diaRecebimentoSalario) setCcRecebimento(configuracoes.diaRecebimentoSalario);
+    if (configuracoes.diaViradaMes) setDiaVirada(configuracoes.diaViradaMes);
   }, [configuracoes]);
 
   /* ── Resumo calculado ── */
@@ -328,7 +332,8 @@ export default function EditarDadosFinanceiros() {
     salvarConfiguracoes({
       diaVencimentoCartao: parseInt(ccVencimento) || null,
       limiteCartao: parseFloat(String(ccLimite).replace(/[^\d.]/g, "")) || 0,
-      diaRecebimentoSalario: parseInt(ccRecebimento) || null
+      diaRecebimentoSalario: parseInt(ccRecebimento) || null,
+      diaViradaMes: parseInt(diaVirada) || null,
     });
 
     salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta });
@@ -481,6 +486,44 @@ export default function EditarDadosFinanceiros() {
                 </div>
               </div>
 
+
+              {/* Virada de mês */}
+              <div className="edf-card">
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <p className="edf-section-title">📅 Virada de Mês Automática</p>
+                  {diaVirada && (
+                    <span style={{
+                      background: 'rgba(78,227,196,0.12)',
+                      border: '1px solid rgba(78,227,196,0.25)',
+                      color: 'var(--bd-teal)',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      padding: '0.15rem 0.6rem',
+                      borderRadius: '20px',
+                    }}>
+                      Todo dia {diaVirada}
+                    </span>
+                  )}
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--bd-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
+                  Quando chegar este dia, o sistema consolida automaticamente a fatura do mês anterior e prepara o novo ciclo.
+                </p>
+
+                <label className="edf-label">Dia do mês para virar (1–28)</label>
+                <div className="edf-input-wrap no-mb">
+                  <i className="bi bi-arrow-repeat edf-prefix-icon" />
+                  <input
+                    className="edf-input"
+                    type="number"
+                    min="1"
+                    max="28"
+                    placeholder="ex: 1 (primeiro dia do mês)"
+                    value={diaVirada}
+                    onChange={(e) => setDiaVirada(e.target.value)}
+                  />
+                  <i className="bi bi-pencil edf-pencil-icon" />
+                </div>
+              </div>
 
               {/* Configurações do Cartão e Salário (Issue #21) */}
               <div className="edf-card">

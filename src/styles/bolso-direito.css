@@ -44,6 +44,10 @@
   --sidebar-w: clamp(200px, 18vw, 260px);
 }
 
+.text-muted {
+  color: rgba(255, 255, 255, 0.6) !important; /* Um branco com 60% de opacidade, bem mais legível */
+}
+
 /* ─── Base ────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;

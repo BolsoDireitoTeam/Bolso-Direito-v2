@@ -49,11 +49,14 @@ export function useAutoViradaMes(bump, mostrarToast) {
     const mesAtual = getMesAtual()
     const diaAtual = getDiaAtual()
 
+    // Usa diaViradaMes se configurado, senão cai para diaVencimentoCartao (compat.)
+    const diaVirada = cfg.diaViradaMes || cfg.diaVencimentoCartao
+
     // Sem dia configurado: nada a fazer agora (FinanceContext sinaliza o alerta)
-    if (!cfg.diaVencimentoCartao) return { alertaConfigurar: true }
+    if (!diaVirada) return { alertaConfigurar: true }
 
     const jaProcessou = cfg.ultimoMesProcessado === mesAtual
-    const deveConsolidar = diaAtual >= cfg.diaVencimentoCartao
+    const deveConsolidar = diaAtual >= diaVirada
 
     if (deveConsolidar && !jaProcessou) {
       try {
