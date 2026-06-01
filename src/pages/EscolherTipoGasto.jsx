@@ -6,13 +6,17 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { adicionarGasto } from '../store/slices/financeSlice'
+import { selectTransacaoPendente, setTransacaoPendente, selectMesAnoFiltro, mostrarToastTemporario } from '../store/slices/uiSlice'
 import { moeda, hojeISO, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 
 function EscolherTipoGasto() {
   const navigate = useNavigate()
-  const { transacaoPendente, setTransacaoPendente, adicionarGasto, mostrarToast, mesAnoFiltro } = useFinance()
+  const dispatch = useAppDispatch()
+  const transacaoPendente = useAppSelector(selectTransacaoPendente)
+  const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
 
   const dataDefault = mesAnoFiltro === mesAtual()
     ? hojeISO()
@@ -29,32 +33,32 @@ function EscolherTipoGasto() {
 
   const handleSalvar = () => {
     if (!nome.trim()) {
-      mostrarToast('Informe uma descrição para o gasto.', 'error')
+      dispatch(mostrarToastTemporario('Informe uma descrição para o gasto.', 'error'))
       return
     }
     if (!tipo) {
-      mostrarToast('Escolha o tipo de pagamento.', 'error')
+      dispatch(mostrarToastTemporario('Escolha o tipo de pagamento.', 'error'))
       return
     }
 
     try {
-      adicionarGasto({
+      dispatch(adicionarGasto({
         nome: nome.trim(),
         valor: transacaoPendente.valor,
         categoria: transacaoPendente.categoria,
         tipo,
         parcelas: tipo === 'credito' ? parcelas : 1,
         data: dataDefault,
-      })
-      setTransacaoPendente(null)
+      }))
+      dispatch(setTransacaoPendente(null))
 
       const textoTipo = tipo === 'credito'
         ? `no crédito (${parcelas}x de ${moeda(transacaoPendente.valor / parcelas)})`
         : 'no débito'
-      mostrarToast(`Gasto de ${moeda(transacaoPendente.valor)} ${textoTipo} adicionado!`, 'success')
+      dispatch(mostrarToastTemporario(`Gasto de ${moeda(transacaoPendente.valor)} ${textoTipo} adicionado!`, 'success'))
       navigate('/')
     } catch (err) {
-      mostrarToast(err.message, 'error')
+      dispatch(mostrarToastTemporario(err.message, 'error'))
     }
   }
 

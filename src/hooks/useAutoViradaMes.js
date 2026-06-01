@@ -7,11 +7,16 @@
 //    2. Se hoje >= diaVencimentoCartao E ultimoMesProcessado != mesAtual
 //       → executa virar_mes() e sela o mês com o lacre de idempotência
 //    3. Se diaVencimentoCartao não configurado → sinaliza via alertaConfigurar
+//
+//  Adaptado para Redux: usa dispatch para toasts e sync de state.
 // ============================================================
 
 import { useCallback } from 'react'
+import { useAppDispatch } from '../store/hooks'
 import { BolsoDB } from '../services/BolsoDB'
 import { BolsoEngine } from '../services/BolsoEngine'
+import { mostrarToastTemporario } from '../store/slices/uiSlice'
+import { initFinance } from '../store/slices/financeSlice'
 
 /**
  * Retorna o mês atual no formato "YYYY-MM".
@@ -32,17 +37,16 @@ function getDiaAtual() {
 /**
  * Hook de automação de virada de mês.
  *
- * @param {Function} bump         — função que força re-render no FinanceContext
- * @param {Function} mostrarToast — função de toast do FinanceContext
  * @returns {{
- *   alertaConfigurar: boolean,
- *   executarAutoVirada: () => void
+ *   executarAutoVirada: () => { alertaConfigurar: boolean } | void
  * }}
  */
-export function useAutoViradaMes(bump, mostrarToast) {
+export function useAutoViradaMes() {
+  const dispatch = useAppDispatch()
+
   /**
    * Executa a verificação e, se necessário, dispara a virada automática.
-   * Deve ser chamada UMA VEZ no useEffect de mount do FinanceContext.
+   * Deve ser chamada UMA VEZ no useEffect de mount do App.
    */
   const executarAutoVirada = useCallback(() => {
     const cfg = BolsoDB.getConfiguracoes()
@@ -52,7 +56,7 @@ export function useAutoViradaMes(bump, mostrarToast) {
     // Usa diaViradaMes se configurado, senão cai para diaVencimentoCartao (compat.)
     const diaVirada = cfg.diaViradaMes || cfg.diaVencimentoCartao
 
-    // Sem dia configurado: nada a fazer agora (FinanceContext sinaliza o alerta)
+    // Sem dia configurado: nada a fazer agora (App.jsx sinaliza o alerta)
     if (!diaVirada) return { alertaConfigurar: true }
 
     const jaProcessou = cfg.ultimoMesProcessado === mesAtual
@@ -63,21 +67,24 @@ export function useAutoViradaMes(bump, mostrarToast) {
         BolsoEngine.virar_mes()
         // Sela o mês para idempotência — próxima abertura do app não repetirá
         BolsoDB.salvarConfiguracoes({ ultimoMesProcessado: mesAtual })
-        bump()
-        mostrarToast(
-          `📅 Fatura de ${mesAtual} consolidada automaticamente!`,
-          'success'
+        // Re-sincroniza o Redux com os dados atualizados
+        dispatch(initFinance())
+        dispatch(
+          mostrarToastTemporario(
+            `📅 Fatura de ${mesAtual} consolidada automaticamente!`,
+            'success'
+          )
         )
         console.info(`[AutoVirada] ✅ Mês ${mesAtual} processado automaticamente.`)
       } catch (err) {
         console.error('[AutoVirada] Erro ao consolidar mês:', err)
-        mostrarToast('Erro ao consolidar o mês automaticamente.', 'error')
+        dispatch(mostrarToastTemporario('Erro ao consolidar o mês automaticamente.', 'error'))
       }
       return { alertaConfigurar: false }
     }
 
     return { alertaConfigurar: false }
-  }, [bump, mostrarToast])
+  }, [dispatch])
 
   return { executarAutoVirada }
 }

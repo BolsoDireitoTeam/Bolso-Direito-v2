@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { selectSaldo } from '../store/slices/financeSlice'
+import { adicionarMeta } from '../store/slices/metasSlice'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 
@@ -25,7 +27,8 @@ function formatBRL(val) {
 
 function NovaMeta() {
   const navigate = useNavigate()
-  const { adicionarMeta, saldo } = useFinance()
+  const dispatch = useAppDispatch()
+  const saldo = useAppSelector(selectSaldo)
 
   const [icone, setIcone] = useState('bi-bullseye')
   const [nome, setNome] = useState('')
@@ -59,13 +62,13 @@ function NovaMeta() {
       return
     }
 
-    adicionarMeta({
+    dispatch(adicionarMeta({
       icone,
       nome: nome.trim(),
       valorAlvo: target,
       cor,
       aporteInicial: aporte,
-    })
+    }))
 
     navigate('/metas')
   }

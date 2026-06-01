@@ -1,15 +1,16 @@
 // ============================================================
 //  Bolso Direito v2 — AlertaBanner.jsx
 //  Exibe alertas de risco financeiro de faturas futuras.
-//  Consome useFinance().alertas
+//  Consome Redux financeSlice.alertas
 // ============================================================
 
 import { useState } from 'react'
-import { useFinance } from '../../hooks/useFinance'
+import { useAppSelector } from '../../store/hooks'
+import { selectAlertas } from '../../store/slices/financeSlice'
 import { moeda } from '../../utils/format'
 
 function AlertaBanner() {
-  const { alertas } = useFinance()
+  const alertas = useAppSelector(selectAlertas)
   const [dismissed, setDismissed] = useState([])
 
   // Filtra apenas alertas de atenção ou risco e que não foram dispensados

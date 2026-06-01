@@ -1,12 +1,17 @@
 import { Link } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { selectConfiguracoes, selectSaldo } from '../store/slices/financeSlice'
+import { selectInvestimentos, calcularValorInvestimento, removerInvestimento, aportarInvestimento } from '../store/slices/investimentosSlice'
 import { moeda, mesAtualLabel } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import PaywallOverlay from '../components/ui/PaywallOverlay'
 import Card from '../components/ui/Card'
 
 function CarteiraInvestimentos({ onAddClick }) {
-  const { configuracoes, investimentos, calcularValorInvestimento, removerInvestimento, aportarInvestimento, saldo } = useFinance()
+  const dispatch = useAppDispatch()
+  const configuracoes = useAppSelector(selectConfiguracoes)
+  const saldo = useAppSelector(selectSaldo)
+  const investimentos = useAppSelector(selectInvestimentos)
   const isPremium = configuracoes.plano === 'pago'
 
   return (
@@ -79,7 +84,7 @@ function CarteiraInvestimentos({ onAddClick }) {
                         <small style={{ color: 'var(--bd-muted)' }}>{inv.tipo}</small>
                       </div>
                       <button 
-                        onClick={() => { if(window.confirm(`Resgatar "${inv.nome}"?`)) removerInvestimento(inv.id) }}
+                        onClick={() => { if(window.confirm(`Resgatar "${inv.nome}"?`)) dispatch(removerInvestimento(inv.id)) }}
                         style={{ background: 'none', border: 'none', color: 'var(--bd-muted)', cursor: 'pointer', fontSize: '0.9rem' }}
                         title="Resgatar investimento"
                       >
@@ -128,7 +133,7 @@ function CarteiraInvestimentos({ onAddClick }) {
                         const val = prompt(`Aportar quanto em "${inv.nome}"?\nSaldo disponível: ${moeda(saldo)}`)
                         if (val) {
                           const v = parseFloat(val.replace(',', '.'))
-                          if (v > 0) aportarInvestimento(inv.id, v)
+                          if (v > 0) dispatch(aportarInvestimento({ id: inv.id, valor: v }))
                         }
                       }}
                     >

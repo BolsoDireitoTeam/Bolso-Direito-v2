@@ -1,6 +1,11 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector } from '../store/hooks'
+import { selectSaldo, selectTransacoes, selectReceitasMes, selectDespesasMes, selectTotalFatura, selectGastosPorCategoria } from '../store/slices/financeSlice'
+import { selectMetas } from '../store/slices/metasSlice'
+import { selectInvestimentosTotais } from '../store/slices/investimentosSlice'
+import { selectUsuario } from '../store/slices/userSlice'
+import { selectMesAnoFiltro, selectAlertaConfigurar } from '../store/slices/uiSlice'
 import { moeda, nomeMes } from '../utils/format'
 
 import PageHeader from '../components/ui/PageHeader'
@@ -16,22 +21,18 @@ import LineChart from '../components/charts/LineChart'
 import RadarChart from '../components/charts/RadarChart'
 import GroupedBarChart from '../components/charts/GroupedBarChart'
 
-// chartData removido — dados vêm do FinanceContext
-
 function VisaoGeral({ onAddClick }) {
-  const {
-    saldo,
-    transacoes,
-    receitasMes,
-    despesasMes,
-    totalFaturaMesAtual,
-    gastosPorCategoria,
-    alertaConfigurar,
-    metas,
-    investimentosTotais,
-    usuario,
-    mesAnoFiltro,
-  } = useFinance()
+  const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
+  const saldo = useAppSelector(selectSaldo)
+  const transacoes = useAppSelector(selectTransacoes)
+  const receitasMes = useAppSelector((state) => selectReceitasMes(state, mesAnoFiltro))
+  const despesasMes = useAppSelector((state) => selectDespesasMes(state, mesAnoFiltro))
+  const totalFaturaMesAtual = useAppSelector((state) => selectTotalFatura(state, mesAnoFiltro))
+  const gastosPorCategoria = useAppSelector((state) => selectGastosPorCategoria(state, mesAnoFiltro))
+  const alertaConfigurar = useAppSelector(selectAlertaConfigurar)
+  const metas = useAppSelector(selectMetas)
+  const investimentosTotais = useAppSelector(selectInvestimentosTotais)
+  const usuario = useAppSelector(selectUsuario)
 
   // Últimas 6 transações
   const ultimasTransacoes = transacoes.slice(0, 6)

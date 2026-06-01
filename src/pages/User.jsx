@@ -1,10 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useFinance } from "../hooks/useFinance";
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { selectConfiguracoes, selectSaldo, salvarConfiguracoes } from '../store/slices/financeSlice'
+import { selectUsuario } from '../store/slices/userSlice'
+import { mostrarToastTemporario } from '../store/slices/uiSlice'
 import { moeda } from "../utils/format";
 
 export default function User() {
   const navigate = useNavigate();
-  const { configuracoes, salvarConfiguracoes, saldo, mostrarToast, usuario } = useFinance();
+  const dispatch = useAppDispatch();
+  const configuracoes = useAppSelector(selectConfiguracoes);
+  const saldo = useAppSelector(selectSaldo);
+  const usuario = useAppSelector(selectUsuario);
 
   const nome = usuario?.nome ?? "Usuário";
   const avatar = usuario?.avatar ??
@@ -14,8 +20,8 @@ export default function User() {
 
   const togglePlano = () => {
     const novoPlano = isPremium ? 'gratuito' : 'pago';
-    salvarConfiguracoes({ plano: novoPlano });
-    mostrarToast(isPremium ? 'Plano alterado para Gratuito.' : 'Upgrade para PRO realizado! 🌟');
+    dispatch(salvarConfiguracoes({ plano: novoPlano }));
+    dispatch(mostrarToastTemporario(isPremium ? 'Plano alterado para Gratuito.' : 'Upgrade para PRO realizado! 🌟'));
   };
 
   return (

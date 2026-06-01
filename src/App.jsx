@@ -1,16 +1,33 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
-import { FinanceProvider } from './context/FinanceContext'
-import Toast from './components/ui/Toast'
+// ── Redux ──
+import { useAppDispatch, useAppSelector } from './store/hooks'
+import { initFinance } from './store/slices/financeSlice'
+import { initMetas } from './store/slices/metasSlice'
+import { initInvestimentos } from './store/slices/investimentosSlice'
+import { selectIsLoggedIn, login } from './store/slices/userSlice'
+import { selectUsuario } from './store/slices/userSlice'
+import {
+  selectActionSheetOpen,
+  toggleActionSheet,
+  setActionSheetOpen,
+  setAlertaConfigurar,
+} from './store/slices/uiSlice'
 
+// ── Auto-virada de mês ──
+import { useAutoViradaMes } from './hooks/useAutoViradaMes'
+
+// ── UI Components ──
+import Toast from './components/ui/Toast'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import BottomNav from './components/layout/BottomNav'
 import Fab from './components/layout/Fab'
 import ActionSheet from './components/layout/ActionSheet'
 
-import Login from './pages/Login'
+// ── Pages ──
+import LoginPage from './pages/Login'
 import Register from './pages/Register'
 import VisaoGeral from './pages/VisaoGeral'
 import User from './pages/User'
@@ -32,23 +49,32 @@ import Metas from './pages/Metas'
 import NovaMeta from './pages/NovaMeta'
 import MetaDetalhes from './pages/MetaDetalhes'
 
-// ── Inner App: consome FinanceContext para dados centralizados ──
-import { useFinance } from './hooks/useFinance'
+function App() {
+  const dispatch = useAppDispatch()
+  const isLoggedIn = useAppSelector(selectIsLoggedIn)
+  const usuario = useAppSelector(selectUsuario)
+  const actionSheetOpen = useAppSelector(selectActionSheetOpen)
 
-function AppInner() {
-  const { usuario, salvarUsuario, financeiro, salvarFinanceiro } = useFinance()
+  const toggleMenu = () => dispatch(toggleActionSheet())
 
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    () => localStorage.getItem('bd_logado') === 'true'
-  )
+  // ── Auto-virada de mês (hook adaptado) ──
+  const { executarAutoVirada } = useAutoViradaMes()
 
-  const [actionSheetOpen, setActionSheetOpen] = useState(false)
-  const toggleMenu = () => setActionSheetOpen(prev => !prev)
+  // ── Inicializar stores e auto-virada ──
+  useEffect(() => {
+    dispatch(initFinance())
+    dispatch(initMetas())
+    dispatch(initInvestimentos())
 
+    const resultado = executarAutoVirada()
+    if (resultado?.alertaConfigurar) {
+      dispatch(setAlertaConfigurar(true))
+    }
+  }, [dispatch, executarAutoVirada])
+
+  // ── Login handler (passado para Login/Register) ──
   const handleLogin = (dados) => {
-    setIsLoggedIn(true)
-    salvarUsuario({ nome: dados.username })
-    localStorage.setItem('bd_logado', 'true')
+    dispatch(login(dados))
   }
 
   return (
@@ -59,7 +85,7 @@ function AppInner() {
         element={
           isLoggedIn
             ? <Navigate to="/" replace />
-            : <Login onLogin={handleLogin} />
+            : <LoginPage onLogin={handleLogin} />
         }
       />
 
@@ -108,7 +134,7 @@ function AppInner() {
                   </Routes>
                 </main>
                 <Fab onClick={toggleMenu} />
-                <ActionSheet isOpen={actionSheetOpen} onClose={() => setActionSheetOpen(false)} />
+                <ActionSheet isOpen={actionSheetOpen} onClose={() => dispatch(setActionSheetOpen(false))} />
                 <BottomNav onAddClick={toggleMenu} />
                 <Toast />
               </>
@@ -116,15 +142,6 @@ function AppInner() {
         }
       />
     </Routes>
-  )
-}
-
-// ── App root: wraps everything in FinanceProvider ──
-function App() {
-  return (
-    <FinanceProvider>
-      <AppInner />
-    </FinanceProvider>
   )
 }
 

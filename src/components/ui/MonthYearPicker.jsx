@@ -1,11 +1,12 @@
 // ============================================================
 //  MonthYearPicker.jsx
 //  Seletor compacto de mês/ano para Sidebar e Topbar.
-//  Lê e escreve mesAnoFiltro no FinanceContext.
+//  Lê e escreve mesAnoFiltro no Redux uiSlice.
 // ============================================================
 
 import { useMemo } from 'react'
-import { useFinance } from '../../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../../store/hooks'
+import { selectMesAnoFiltro, setMesAnoFiltro } from '../../store/slices/uiSlice'
 import { nomeMes, mesAtual } from '../../utils/format'
 
 // Gera N meses passados + 1 futuro a partir do mês atual
@@ -22,7 +23,8 @@ function gerarMeses(passados = 23, futuros = 1) {
 }
 
 function MonthYearPicker({ compact = false }) {
-  const { mesAnoFiltro, setMesAnoFiltro } = useFinance()
+  const dispatch = useAppDispatch()
+  const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
   const hoje = mesAtual()
 
   const meses = useMemo(() => gerarMeses(23, 1), [])
@@ -30,10 +32,10 @@ function MonthYearPicker({ compact = false }) {
   const idxAtual = meses.indexOf(mesAnoFiltro)
 
   const navAnterior = () => {
-    if (idxAtual > 0) setMesAnoFiltro(meses[idxAtual - 1])
+    if (idxAtual > 0) dispatch(setMesAnoFiltro(meses[idxAtual - 1]))
   }
   const navProximo = () => {
-    if (idxAtual < meses.length - 1) setMesAnoFiltro(meses[idxAtual + 1])
+    if (idxAtual < meses.length - 1) dispatch(setMesAnoFiltro(meses[idxAtual + 1]))
   }
 
   const isHoje = mesAnoFiltro === hoje
@@ -100,7 +102,7 @@ function MonthYearPicker({ compact = false }) {
       {/* Seletor dropdown */}
       <select
         value={mesAnoFiltro}
-        onChange={e => setMesAnoFiltro(e.target.value)}
+        onChange={e => dispatch(setMesAnoFiltro(e.target.value))}
         style={{
           background: 'transparent',
           border: 'none',

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useFinance } from "../hooks/useFinance";
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { selectUsuario, salvarUsuario } from '../store/slices/userSlice';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -257,7 +258,8 @@ function calcStrength(val) {
 /* ── Componente ── */
 export default function EditarInfoPessoal() {
   const navigate = useNavigate();
-  const { usuario, salvarUsuario } = useFinance();
+  const dispatch = useAppDispatch();
+  const usuario = useAppSelector(selectUsuario);
   const avatarInputRef = useRef(null);
 
   const [nome,          setNome]          = useState(usuario?.nome   ?? "Usuário");
@@ -295,7 +297,7 @@ export default function EditarInfoPessoal() {
       setToast({ msg: "As senhas não coincidem.", type: "error" });
       return;
     }
-    salvarUsuario({ nome, email, celular, avatar: avatarSrc });
+    dispatch(salvarUsuario({ nome, email, celular, avatar: avatarSrc }));
     setToast({ msg: "Alterações salvas com sucesso!", type: "success" });
     setTimeout(() => setToast({ msg: "", type: "" }), 3000);
   };

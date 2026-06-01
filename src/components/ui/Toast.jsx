@@ -1,12 +1,13 @@
 // ============================================================
 //  Bolso Direito v2 — Toast.jsx
-//  Feedback não-bloqueante que consome useFinance().toast
+//  Feedback não-bloqueante que consome o Redux uiSlice.toast
 // ============================================================
 
-import { useFinance } from '../../hooks/useFinance'
+import { useAppSelector } from '../../store/hooks'
+import { selectToast } from '../../store/slices/uiSlice'
 
 function Toast() {
-  const { toast } = useFinance()
+  const toast = useAppSelector(selectToast)
 
   if (!toast) return null
 

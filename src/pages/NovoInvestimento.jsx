@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppDispatch } from '../store/hooks'
+import { adicionarInvestimento } from '../store/slices/investimentosSlice'
 import { mesAtualLabel } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 
 function NovoInvestimento() {
   const navigate = useNavigate()
-  const { adicionarInvestimento } = useFinance()
+  const dispatch = useAppDispatch()
 
   const [nome, setNome] = useState('')
   const [tipo, setTipo] = useState('')
@@ -34,14 +35,14 @@ function NovoInvestimento() {
         break
     }
 
-    adicionarInvestimento({
+    dispatch(adicionarInvestimento({
       nome,
       tipo: labelTipo,
       valorInicial: parseFloat(valor) || 0,
       taxaMensal: parseFloat(taxaMensal) / 100 || 0,
       icone,
       cor,
-    })
+    }))
 
     navigate('/investimentos/carteira')
   }

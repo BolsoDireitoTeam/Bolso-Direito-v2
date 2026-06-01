@@ -5,7 +5,9 @@
 // ============================================================
 
 import { useState, useMemo, useEffect } from 'react'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { selectTransacoes, CATEGORIAS, removerGanho, removerGastoDebito, removerGastoCredito, editarTransacao } from '../store/slices/financeSlice'
+import { selectMesAnoFiltro, mostrarToastTemporario } from '../store/slices/uiSlice'
 import { moeda, nomeMes, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
@@ -13,7 +15,6 @@ import TransactionItem from '../components/finance/TransactionItem'
 import { gerarCSV, baixarCSV } from '../utils/csvExporter'
 import '../styles/transacoes.css'
 
-// Gera os últimos N meses (inclusive o atual) no formato "YYYY-MM"
 function gerarMeses(n = 6) {
   const meses = []
   const agora = new Date()
@@ -27,16 +28,11 @@ function gerarMeses(n = 6) {
 }
 
 function ListaTransacoes() {
-  const {
-    transacoes,
-    categorias,
-    removerGanho,
-    removerGastoDebito,
-    removerGastoCredito,
-    editarTransacao,
-    mostrarToast,
-    mesAnoFiltro,
-  } = useFinance()
+  const dispatch = useAppDispatch()
+  const transacoes = useAppSelector(selectTransacoes)
+  const categorias = CATEGORIAS
+  const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
+  const mostrarToast = (msg, tipo) => dispatch(mostrarToastTemporario(msg, tipo))
 
   const [filtroMes, setFiltroMes] = useState(mesAnoFiltro)
   const [filtroCategoria, setFiltroCategoria] = useState('Todas as categorias')
@@ -80,9 +76,9 @@ function ListaTransacoes() {
     if (!window.confirm(`Remover "${desc}"? Esta ação não pode ser desfeita.`)) return
 
     let ok = false
-    if (tx.tipo === 'ganho') ok = removerGanho(tx.id)
-    else if (tx.subtipo === 'debito') ok = removerGastoDebito(tx.id)
-    else if (tx.subtipo === 'credito') ok = removerGastoCredito(tx.id)
+    if (tx.tipo === 'ganho') ok = dispatch(removerGanho(tx.id))
+    else if (tx.subtipo === 'debito') ok = dispatch(removerGastoDebito(tx.id))
+    else if (tx.subtipo === 'credito') ok = dispatch(removerGastoCredito(tx.id))
 
     if (ok) mostrarToast(`"${desc}" removido.`, 'success')
     else mostrarToast('Não foi possível remover.', 'error')
@@ -99,11 +95,11 @@ function ListaTransacoes() {
     if (!editNome.trim()) { mostrarToast('Informe um nome.', 'error'); return }
 
     const novoValor = parseFloat(editValor)
-    const ok = editarTransacao(editando.id, {
+    const ok = dispatch(editarTransacao({ id: editando.id, dadosAtualizados: {
       nome: editNome.trim(),
       valor: isNaN(novoValor) ? undefined : novoValor,
       categoria: editCategoria || undefined,
-    })
+    } }))
 
     if (ok) { mostrarToast('Transação atualizada!', 'success'); setEditando(null) }
     else mostrarToast('Não foi possível editar.', 'error')

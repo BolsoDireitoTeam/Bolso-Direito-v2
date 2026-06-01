@@ -1,12 +1,13 @@
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-import { useFinance } from '../../hooks/useFinance'
+import { useAppSelector } from '../../store/hooks'
+import { selectUsuario } from '../../store/slices/userSlice'
 import { sidebarNavItems } from '../../data/constants'
 import MonthYearPicker from '../ui/MonthYearPicker'
 
 function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { usuario } = useFinance()
+  const usuario = useAppSelector(selectUsuario)
 
   const defaultNome = usuario?.nome || 'Usuário'
   const initials = defaultNome.substring(0, 2).toUpperCase()

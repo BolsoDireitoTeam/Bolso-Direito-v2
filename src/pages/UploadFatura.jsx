@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppDispatch } from '../store/hooks'
+import { CATEGORIAS, importarTransacoes } from '../store/slices/financeSlice'
+import { mostrarToastTemporario } from '../store/slices/uiSlice'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 import { parsearCSV } from '../utils/csvParser'
@@ -9,7 +11,9 @@ import ClassificadorDB from '../services/ClassificadorDB'
 
 function UploadFatura() {
   const navigate = useNavigate()
-  const { mostrarToast, categorias, importarTransacoes } = useFinance()
+  const dispatch = useAppDispatch()
+  const categorias = CATEGORIAS
+  const mostrarToast = (msg, tipo) => dispatch(mostrarToastTemporario(msg, tipo))
   const inputRef = useRef()
   
   const [arquivo, setArquivo] = useState(null)
@@ -62,7 +66,7 @@ function UploadFatura() {
       ClassificadorDB.aprender(tx.nome, tx.categoria)
     })
 
-    importarTransacoes(selecionadas)
+    dispatch(importarTransacoes(selecionadas))
     mostrarToast('Fatura importada com sucesso!', 'success')
     navigate('/transacoes')
   }

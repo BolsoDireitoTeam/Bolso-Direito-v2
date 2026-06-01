@@ -5,7 +5,9 @@
 // ============================================================
 
 import { useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { CATEGORIAS } from '../store/slices/financeSlice'
+import { selectTransacaoPendente, setTransacaoPendente } from '../store/slices/uiSlice'
 import { moeda } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 
@@ -23,7 +25,9 @@ const ICONES_CATEGORIA = {
 
 function EscolherCategoria() {
   const navigate = useNavigate()
-  const { categorias, transacaoPendente, setTransacaoPendente } = useFinance()
+  const dispatch = useAppDispatch()
+  const categorias = CATEGORIAS
+  const transacaoPendente = useAppSelector(selectTransacaoPendente)
 
   // Redireciona se não há transação pendente
   if (!transacaoPendente) {
@@ -32,7 +36,7 @@ function EscolherCategoria() {
   }
 
   const handleCategoria = (categoria) => {
-    setTransacaoPendente({ ...transacaoPendente, categoria })
+    dispatch(setTransacaoPendente({ ...transacaoPendente, categoria }))
     navigate('/transacoes/tipo')
   }
 

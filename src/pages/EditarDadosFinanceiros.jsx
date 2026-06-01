@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useFinance } from "../hooks/useFinance";
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { selectConfiguracoes, salvarConfiguracoes } from '../store/slices/financeSlice';
+import { selectFinanceiro, salvarFinanceiro } from '../store/slices/userSlice';
+import { mostrarToastTemporario } from '../store/slices/uiSlice';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -257,7 +260,9 @@ function pctColor(val) {
 /* ── Componente ── */
 export default function EditarDadosFinanceiros() {
   const navigate = useNavigate();
-  const { configuracoes, salvarConfiguracoes, mostrarToast, financeiro, salvarFinanceiro } = useFinance();
+  const dispatch = useAppDispatch();
+  const configuracoes = useAppSelector(selectConfiguracoes);
+  const financeiro = useAppSelector(selectFinanceiro);
 
   /* Configurações do Cartão (Issue #21) */
   const [ccVencimento, setCcVencimento] = useState(configuracoes.diaVencimentoCartao ?? "");
@@ -329,16 +334,16 @@ export default function EditarDadosFinanceiros() {
     e.preventDefault();
 
     // Salvar configurações globais (Issue #21)
-    salvarConfiguracoes({
+    dispatch(salvarConfiguracoes({
       diaVencimentoCartao: parseInt(ccVencimento) || null,
       limiteCartao: parseFloat(String(ccLimite).replace(/[^\d.]/g, "")) || 0,
       diaRecebimentoSalario: parseInt(ccRecebimento) || null,
       diaViradaMes: parseInt(diaVirada) || null,
-    });
+    }));
 
-    salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta });
+    dispatch(salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta }));
 
-    mostrarToast("Dados financeiros salvos com sucesso!", "success");
+    dispatch(mostrarToastTemporario("Dados financeiros salvos com sucesso!", "success"));
   };
 
   /* ── Render ── */

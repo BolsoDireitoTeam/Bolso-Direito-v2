@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector } from '../store/hooks'
+import { selectSaldo, selectConfiguracoes } from '../store/slices/financeSlice'
+import { selectMetas } from '../store/slices/metasSlice'
 import PageHeader from '../components/ui/PageHeader'
 import ProgressBar from '../components/ui/ProgressBar'
 import PaywallOverlay from '../components/ui/PaywallOverlay'
@@ -10,7 +12,9 @@ function formatBRL(val) {
 
 function Metas() {
   const navigate = useNavigate()
-  const { metas, saldo, configuracoes } = useFinance()
+  const metas = useAppSelector(selectMetas)
+  const saldo = useAppSelector(selectSaldo)
+  const configuracoes = useAppSelector(selectConfiguracoes)
   const isPremium = configuracoes.plano === 'pago'
 
   const totalAlocado = metas.reduce((s, m) => s + m.valorAtual, 0)

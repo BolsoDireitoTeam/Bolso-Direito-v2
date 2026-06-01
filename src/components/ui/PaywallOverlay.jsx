@@ -4,14 +4,16 @@
  * Oferece uma barreira visual elegante (glassmorphism) e um call-to-action de upgrade.
  */
 
-import { useFinance } from '../../hooks/useFinance'
+import { useAppDispatch } from '../../store/hooks'
+import { salvarConfiguracoes } from '../../store/slices/financeSlice'
+import { mostrarToastTemporario } from '../../store/slices/uiSlice'
 
 function PaywallOverlay({ titulo, descricao }) {
-  const { salvarConfiguracoes, mostrarToast } = useFinance()
+  const dispatch = useAppDispatch()
 
   const handleUpgrade = () => {
-    salvarConfiguracoes({ plano: 'pago' })
-    mostrarToast('Parabéns! Você agora é Premium! 🌟', 'success')
+    dispatch(salvarConfiguracoes({ plano: 'pago' }))
+    dispatch(mostrarToastTemporario('Parabéns! Você agora é Premium! 🌟', 'success'))
   }
 
   return (
