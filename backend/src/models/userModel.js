@@ -1,4 +1,13 @@
-const users = []; // Simula a collection do MongoDB
+const users = [
+  {
+    id: 'demo-user-123',
+    nome: 'Usuário Demo',
+    email: 'demo@bolsodireito.com.br',
+    senha: '123',
+    financeiro: { saldo: 0, diaVencimentoCartao: null, limiteCartao: 0, plano: 'gratuito' },
+    createdAt: new Date(),
+  }
+]; // Simula a collection do MongoDB
 
 const User = {
   find: async () => users,
@@ -26,7 +35,7 @@ const User = {
   findByIdAndUpdate: async (id, updateData, options = {}) => {
     const idx = users.findIndex(u => u.id === id);
     if (idx === -1) return null;
-    
+
     users[idx] = { ...users[idx], ...updateData, updatedAt: new Date() };
     return users[idx];
   }

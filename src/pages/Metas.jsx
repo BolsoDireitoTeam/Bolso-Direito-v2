@@ -35,7 +35,7 @@ function Metas() {
 
       {metasStatus === 'loading' && <LoadingSpinner mensagem="Carregando metas..." />}
       {metasStatus === 'failed' && <ErrorBanner mensagem={metasError || 'Erro ao carregar metas.'} />}
-      <div style={{ filter: isPremium ? 'none' : 'blur(4px)', pointerEvents: isPremium ? 'auto' : 'none' }}>
+      <div style={{ pointerEvents: isPremium ? 'auto' : 'none' }}>
         <PageHeader
           greeting="Seus Objetivos"
           title="Metas"

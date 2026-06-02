@@ -82,7 +82,7 @@ function TecladoValores() {
     }
   }, [])
 
-  const handleConfirmar = () => {
+  const handleConfirmar = async () => {
     const valor = avaliarExpressao(expressao)
     if (!valor || valor <= 0) {
       dispatch(mostrarToastTemporario('Informe um valor válido maior que zero.', 'error'))
@@ -95,7 +95,7 @@ function TecladoValores() {
         return
       }
       try {
-        dispatch(adicionarGanho({ nome: nome.trim(), valor, data: dataDefault }))
+        await dispatch(adicionarGanho({ nome: nome.trim(), valor, data: dataDefault })).unwrap()
         dispatch(mostrarToastTemporario(`Ganho de ${moeda(valor)} adicionado! 🎉`, 'success'))
         navigate('/')
       } catch (err) {

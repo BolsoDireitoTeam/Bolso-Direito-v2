@@ -29,7 +29,7 @@ function CarteiraInvestimentos({ onAddClick }) {
       {invStatus === 'loading' && <LoadingSpinner mensagem="Carregando investimentos..." />}
       {invStatus === 'failed' && <ErrorBanner mensagem={invError || 'Erro ao carregar investimentos.'} />}
 
-      <div style={{ filter: isPremium ? 'none' : 'blur(4px)', pointerEvents: isPremium ? 'auto' : 'none' }}>
+      <div style={{ pointerEvents: isPremium ? 'auto' : 'none' }}>
         <PageHeader
           greeting="Minha Carteira"
           title="Ativos Atuais"

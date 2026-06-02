@@ -40,15 +40,55 @@ exports.login = async (req, res, next) => {
 
 exports.getProfile = async (req, res, next) => {
   try {
-    // Simulando que o tokenDummy foi interceptado por um authMiddleware e colocou req.userId
-    const userId = req.userId || req.headers['x-user-id']; // Fallback pra simplificar requisições locais
-    
+    const userId = req.userId || req.headers['x-user-id'];
     if (!userId) return res.status(401).json({ success: false, message: 'Não autorizado.' });
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
 
     res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getFullState = async (req, res, next) => {
+  try {
+    const userId = req.userId || req.headers['x-user-id'];
+    if (!userId) return res.status(401).json({ success: false, message: 'Não autorizado.' });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+
+    const Transaction = require('../models/transactionModel');
+    const RecurrentTransaction = require('../models/recurrentModel');
+
+    const transacoes = await Transaction.find({ userId, isInvoiceItem: undefined });
+    const invoices = await Transaction.find({ userId, isInvoiceItem: true });
+    
+    const faturas = invoices.reduce((acc, curr) => {
+      if (!acc[curr.mesFatura]) acc[curr.mesFatura] = [];
+      acc[curr.mesFatura].push(curr);
+      return acc;
+    }, {});
+
+    const recorrentes = await RecurrentTransaction.find({ userId });
+    const ganhosMensais = recorrentes.filter(r => r.tipo === 'ganho');
+    const gastosMensais = recorrentes.filter(r => r.tipo === 'gasto');
+
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        saldo: user.financeiro?.saldo || 0,
+        transacoes: transacoes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+        estado: {
+          faturas,
+          ganhosMensais,
+          gastosMensais
+        },
+        configuracoes: user.financeiro || {}
+      }
+    });
   } catch (error) {
     next(error);
   }

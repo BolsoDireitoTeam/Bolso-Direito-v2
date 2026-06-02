@@ -1,95 +1,81 @@
-
-
 import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
 import { MetaDB } from '../../services/MetaDB'
+import { BolsoDB } from '../../services/BolsoDB'
+import { mostrarToastTemporario } from './uiSlice'
 
-
+// ─────────────────────────────────────────────────────────────
+//  Entity Adapter
+// ─────────────────────────────────────────────────────────────
 
 export const metasAdapter = createEntityAdapter({
   selectId: (meta) => meta.id,
 })
-import { BolsoDB } from '../../services/BolsoDB'
-import { mostrarToastTemporario } from './uiSlice'
 
+// ─────────────────────────────────────────────────────────────
+//  Helpers de Snapshot (async)
+// ─────────────────────────────────────────────────────────────
 
-
-function _snapshotMetas() {
-  return { metas: MetaDB.listar() }
+async function _snapshotMetas() {
+  const metas = await MetaDB.listar()
+  return { metas }
 }
 
-/** Recarrega o financeSlice após side-effects no BolsoDB */
-function _snapshotFinance() {
-  return {
-    saldo: BolsoDB.getSaldo(),
-    transacoes: BolsoDB.getTransacoes(),
-    estado: BolsoDB.getEstado(),
-    configuracoes: BolsoDB.getConfiguracoes(),
-  }
+async function _snapshotFinance() {
+  return BolsoDB.getFullState()
 }
 
-
+// ─────────────────────────────────────────────────────────────
+//  Async Thunks
+// ─────────────────────────────────────────────────────────────
 
 export const initMetas = createAsyncThunk(
   'metas/init',
-  () => {
-    MetaDB.init()
+  async () => {
+    await MetaDB.init()
     return _snapshotMetas()
   }
 )
 
 export const adicionarMeta = createAsyncThunk(
   'metas/adicionar',
-  (params, { dispatch }) => {
-    const nova = MetaDB.adicionar(params)
-
-    // Side-effect: se houver aporte inicial, debita do saldo
-    if (params.aporteInicial && params.aporteInicial > 0) {
-      BolsoDB.adicionarGasto({
-        nome: `Aporte inicial: ${params.nome}`,
-        valor: params.aporteInicial,
-        categoria: 'Poupança',
-        tipo: 'debito',
-      })
-      MetaDB.contribuir(nova.id, params.aporteInicial, 'aporte')
-    }
-
+  async (params, { dispatch }) => {
+    // O backend cria a meta e faz o aporte inicial descontando do saldo, se houver
+    await MetaDB.adicionar(params)
     dispatch(mostrarToastTemporario('Meta criada com sucesso! 🎯', 'success'))
-    return { ..._snapshotMetas(), finance: _snapshotFinance() }
+    const [metasSnapshot, financeSnapshot] = await Promise.all([
+      _snapshotMetas(),
+      _snapshotFinance(),
+    ])
+    return { ...metasSnapshot, finance: financeSnapshot }
   }
 )
 
 export const removerMeta = createAsyncThunk(
   'metas/remover',
-  (id, { dispatch }) => {
-    const meta = MetaDB.listar().find(m => m.id === id)
-
-    // Side-effect: se a meta tinha saldo acumulado, resgata ao saldo
-    if (meta && meta.valorAtual > 0) {
-      BolsoDB.adicionarGanho({
-        nome: `Resgate [Meta excluída]: ${meta.nome}`,
-        valor: meta.valorAtual,
-      })
-    }
-
-    MetaDB.remover(id)
+  async (id, { dispatch }) => {
+    // O backend resgata o saldo restante automaticamente ao remover a meta
+    await MetaDB.remover(id)
     dispatch(mostrarToastTemporario('Meta excluída.', 'success'))
-    return { ..._snapshotMetas(), finance: _snapshotFinance() }
+    const [metasSnapshot, financeSnapshot] = await Promise.all([
+      _snapshotMetas(),
+      _snapshotFinance(),
+    ])
+    return { ...metasSnapshot, finance: financeSnapshot }
   }
 )
 
 export const contribuirMetaSaldo = createAsyncThunk(
   'metas/contribuir',
-  ({ id, valor }, { dispatch, rejectWithValue }) => {
+  async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
-      BolsoDB.adicionarGasto({
-        nome: `Aporte: ${MetaDB.listar().find(m => m.id === id)?.nome || 'Meta'}`,
-        valor,
-        categoria: 'Poupança',
-        tipo: 'debito',
-      })
-      MetaDB.contribuir(id, valor, 'aporte')
+      // O backend debita o valor do saldo e adiciona ao valorAtual da meta
+      await MetaDB.contribuir(id, valor, 'aporte')
       dispatch(mostrarToastTemporario('Aporte realizado com sucesso!', 'success'))
-      return { ..._snapshotMetas(), finance: _snapshotFinance() }
+      const [metasSnapshot, financeSnapshot] = await Promise.all([
+        _snapshotMetas(),
+        _snapshotFinance(),
+      ])
+      return { ...metasSnapshot, finance: financeSnapshot }
     } catch (err) {
       console.error('[metasSlice] Erro no aporte:', err)
       dispatch(mostrarToastTemporario(err.message, 'error'))
@@ -100,19 +86,16 @@ export const contribuirMetaSaldo = createAsyncThunk(
 
 export const resgatarMetaSaldo = createAsyncThunk(
   'metas/resgatar',
-  ({ id, valor }, { dispatch, rejectWithValue }) => {
+  async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
-      const meta = MetaDB.listar().find(m => m.id === id)
-      if (!meta) throw new Error('Meta não encontrada')
-      if (valor > meta.valorAtual) throw new Error('Valor excede o disponível na meta')
-
-      BolsoDB.adicionarGanho({
-        nome: `Resgate: ${meta.nome}`,
-        valor,
-      })
-      MetaDB.resgatar(id, valor)
+      // O backend valida o saldo disponível na meta e credita de volta ao saldo do usuário
+      await MetaDB.resgatar(id, valor)
       dispatch(mostrarToastTemporario('Resgate realizado com sucesso!', 'success'))
-      return { ..._snapshotMetas(), finance: _snapshotFinance() }
+      const [metasSnapshot, financeSnapshot] = await Promise.all([
+        _snapshotMetas(),
+        _snapshotFinance(),
+      ])
+      return { ...metasSnapshot, finance: financeSnapshot }
     } catch (err) {
       console.error('[metasSlice] Erro no resgate:', err)
       dispatch(mostrarToastTemporario(err.message, 'error'))
@@ -123,8 +106,8 @@ export const resgatarMetaSaldo = createAsyncThunk(
 
 export const editarMeta = createAsyncThunk(
   'metas/editar',
-  ({ id, patch }, { dispatch }) => {
-    MetaDB.editar(id, patch)
+  async ({ id, patch }, { dispatch }) => {
+    await MetaDB.editar(id, patch)
     dispatch(mostrarToastTemporario('Meta atualizada!', 'success'))
     return _snapshotMetas()
   }
@@ -132,14 +115,16 @@ export const editarMeta = createAsyncThunk(
 
 export const agendarMeta = createAsyncThunk(
   'metas/agendar',
-  ({ id, agendamento }, { dispatch }) => {
-    MetaDB.editar(id, { agendamento })
+  async ({ id, agendamento }, { dispatch }) => {
+    await MetaDB.editar(id, { agendamento })
     dispatch(mostrarToastTemporario('Agendamento salvo!', 'success'))
     return _snapshotMetas()
   }
 )
 
-
+// ─────────────────────────────────────────────────────────────
+//  Slice
+// ─────────────────────────────────────────────────────────────
 
 const initialState = metasAdapter.getInitialState({
   initialized: false,
@@ -147,10 +132,6 @@ const initialState = metasAdapter.getInitialState({
   error: null,
 })
 
-/**
- * Aplica snapshot de metas e, se presente, despacha os dados
- * financeiros atualizados para o financeSlice via extraReducers.
- */
 function applyMetasSnapshot(state, action) {
   const { metas } = action.payload
   if (metas) metasAdapter.setAll(state, metas)
@@ -204,10 +185,11 @@ const metasSlice = createSlice({
 
 export default metasSlice.reducer
 
+// ─────────────────────────────────────────────────────────────
+//  Selectors
+// ─────────────────────────────────────────────────────────────
 
-const metasSelectors = metasAdapter.getSelectors(
-  (state) => state.metas
-)
+const metasSelectors = metasAdapter.getSelectors((state) => state.metas)
 
 export const selectMetas = metasSelectors.selectAll
 export const selectMetaById = metasSelectors.selectById

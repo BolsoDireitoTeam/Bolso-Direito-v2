@@ -14,6 +14,8 @@ app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/invoices', require('./routes/invoiceRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
 app.use('/api/goals', require('./routes/goalRoutes'));
+app.use('/api/recurrent', require('./routes/recurrentRoutes'));
+app.use('/api/engine', require('./routes/engineRoutes'));
 // app.use('/api/settings', require('./routes/settingsRoutes'));
 
 // Rota de Health Check

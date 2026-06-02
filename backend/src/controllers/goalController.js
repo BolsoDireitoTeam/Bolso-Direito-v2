@@ -1,4 +1,16 @@
 const Goal = require('../models/goalModel');
+const User = require('../models/userModel');
+
+// Helper para atualizar saldo do usuário
+async function _atualizarSaldo(userId, delta) {
+  if (!userId || delta === 0) return;
+  const user = await User.findById(userId);
+  if (!user) return;
+  const saldoAtual = user.financeiro?.saldo || 0;
+  await User.findByIdAndUpdate(userId, {
+    financeiro: { ...user.financeiro, saldo: Number((saldoAtual + delta).toFixed(2)) }
+  });
+}
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -24,8 +36,27 @@ exports.getById = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const userId = req.headers['x-user-id'];
-    const newGoal = await Goal.create({ ...req.body, userId });
-    res.status(201).json({ success: true, data: newGoal });
+    const { aporteInicial, ...resto } = req.body;
+
+    const newGoal = await Goal.create({ ...resto, userId, valorAtual: 0, aportes: [] });
+
+    // Se houver aporte inicial, desconta do saldo e registra no histórico da meta
+    if (aporteInicial && aporteInicial > 0) {
+      await _atualizarSaldo(userId, -aporteInicial);
+      const novoAporte = {
+        id: `ap-${Date.now()}`,
+        valor: aporteInicial,
+        data: new Date().toISOString().split('T')[0],
+        tipo: 'aporte'
+      };
+      await Goal.findByIdAndUpdate(newGoal.id, {
+        valorAtual: aporteInicial,
+        aportes: [novoAporte]
+      });
+    }
+
+    const goalAtualizada = await Goal.findById(newGoal.id);
+    res.status(201).json({ success: true, data: goalAtualizada });
   } catch (error) {
     next(error);
   }
@@ -44,10 +75,18 @@ exports.update = async (req, res, next) => {
 
 exports.delete = async (req, res, next) => {
   try {
+    const userId = req.headers['x-user-id'];
     const { id } = req.params;
-    const deleted = await Goal.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ success: false, message: 'Não encontrado.' });
-    res.status(200).json({ success: true, message: 'Removido com sucesso.' });
+    const goal = await Goal.findById(id);
+    if (!goal) return res.status(404).json({ success: false, message: 'Não encontrado.' });
+
+    // Se a meta tinha saldo acumulado, resgata de volta ao saldo do usuário
+    if (goal.valorAtual > 0) {
+      await _atualizarSaldo(userId, +goal.valorAtual);
+    }
+
+    await Goal.findByIdAndDelete(id);
+    res.status(200).json({ success: true, message: 'Meta excluída e saldo resgatado.' });
   } catch (error) {
     next(error);
   }
@@ -55,11 +94,15 @@ exports.delete = async (req, res, next) => {
 
 exports.contribute = async (req, res, next) => {
   try {
+    const userId = req.headers['x-user-id'];
     const { id } = req.params;
     const { valor, tipo } = req.body;
-    
+
     const goal = await Goal.findById(id);
     if (!goal) return res.status(404).json({ success: false, message: 'Não encontrado.' });
+
+    // Debita do saldo do usuário
+    await _atualizarSaldo(userId, -valor);
 
     const novoValor = Number((goal.valorAtual + valor).toFixed(2));
     const novoAporte = {
@@ -80,13 +123,21 @@ exports.contribute = async (req, res, next) => {
 
 exports.redeem = async (req, res, next) => {
   try {
+    const userId = req.headers['x-user-id'];
     const { id } = req.params;
     const { valor } = req.body;
-    
+
     const goal = await Goal.findById(id);
     if (!goal) return res.status(404).json({ success: false, message: 'Não encontrado.' });
 
-    const novoValor = Math.max(0, Number((goal.valorAtual - valor).toFixed(2)));
+    if (valor > goal.valorAtual) {
+      return res.status(400).json({ success: false, message: 'Valor excede o disponível na meta.' });
+    }
+
+    // Credita de volta ao saldo do usuário
+    await _atualizarSaldo(userId, +valor);
+
+    const novoValor = Number((goal.valorAtual - valor).toFixed(2));
     const novoAporte = {
       id: `ap-${Date.now()}`,
       valor,
@@ -97,7 +148,7 @@ exports.redeem = async (req, res, next) => {
     const aportesAtualizados = [...goal.aportes, novoAporte];
     const updated = await Goal.findByIdAndUpdate(id, { valorAtual: novoValor, aportes: aportesAtualizados });
 
-    res.status(201).json({ success: true, data: updated });
+    res.status(200).json({ success: true, data: updated });
   } catch (error) {
     next(error);
   }

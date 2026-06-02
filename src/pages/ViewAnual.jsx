@@ -57,7 +57,7 @@ function ViewAnual() {
         />
       )}
 
-      <div style={{ filter: isPremium ? 'none' : 'blur(4px)', pointerEvents: isPremium ? 'auto' : 'none' }}>
+      <div style={{ pointerEvents: isPremium ? 'auto' : 'none' }}>
         <PageHeader title="Análise Anual" subtitle="Receitas e despesas por mês" />
 
         {/* Navegação de ano */}

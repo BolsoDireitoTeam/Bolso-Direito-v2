@@ -31,7 +31,7 @@ function EscolherTipoGasto() {
     return null
   }
 
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     if (!nome.trim()) {
       dispatch(mostrarToastTemporario('Informe uma descrição para o gasto.', 'error'))
       return
@@ -42,14 +42,14 @@ function EscolherTipoGasto() {
     }
 
     try {
-      dispatch(adicionarGasto({
+      await dispatch(adicionarGasto({
         nome: nome.trim(),
         valor: transacaoPendente.valor,
         categoria: transacaoPendente.categoria,
-        tipo,
+        subtipo: tipo,
         parcelas: tipo === 'credito' ? parcelas : 1,
         data: dataDefault,
-      }))
+      })).unwrap()
       dispatch(setTransacaoPendente(null))
 
       const textoTipo = tipo === 'credito'

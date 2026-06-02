@@ -1,74 +1,68 @@
-
 import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
 import { InvestimentoDB } from '../../services/InvestimentoDB'
+import { BolsoDB } from '../../services/BolsoDB'
+import { mostrarToastTemporario } from './uiSlice'
 
+// ─────────────────────────────────────────────────────────────
+//  Entity Adapter
+// ─────────────────────────────────────────────────────────────
 
 export const investimentosAdapter = createEntityAdapter({
   selectId: (investimento) => investimento.id,
 })
-import { BolsoDB } from '../../services/BolsoDB'
-import { mostrarToastTemporario } from './uiSlice'
 
+// ─────────────────────────────────────────────────────────────
+//  Helpers de Snapshot (async)
+// ─────────────────────────────────────────────────────────────
 
-
-function _snapshotInvestimentos() {
+async function _snapshotInvestimentos() {
+  const res = await InvestimentoDB.listar()
   return {
-    investimentos: InvestimentoDB.listar(),
-    totais: InvestimentoDB.getTotais(),
+    investimentos: res.investimentos,
+    totais: res.totais,
   }
 }
 
-function _snapshotFinance() {
-  return {
-    saldo: BolsoDB.getSaldo(),
-    transacoes: BolsoDB.getTransacoes(),
-    estado: BolsoDB.getEstado(),
-    configuracoes: BolsoDB.getConfiguracoes(),
-  }
-}
-
-
+// ─────────────────────────────────────────────────────────────
+//  Async Thunks
+// ─────────────────────────────────────────────────────────────
 
 export const initInvestimentos = createAsyncThunk(
   'investimentos/init',
-  () => {
-    InvestimentoDB.init()
+  async () => {
+    await InvestimentoDB.init()
     return _snapshotInvestimentos()
   }
 )
 
 export const adicionarInvestimento = createAsyncThunk(
   'investimentos/adicionar',
-  (params, { dispatch }) => {
-    const inv = InvestimentoDB.adicionar(params)
+  async (params, { dispatch }) => {
+    await InvestimentoDB.adicionar(params)
     dispatch(mostrarToastTemporario('Investimento adicionado!', 'success'))
-    return { inv, ..._snapshotInvestimentos() }
+    return _snapshotInvestimentos()
   }
 )
 
 export const removerInvestimento = createAsyncThunk(
   'investimentos/remover',
-  (id, { dispatch }) => {
-    const inv = InvestimentoDB.remover(id)
-    if (inv) {
-      // Devolver montante acumulado ao saldo
-      const { montante } = InvestimentoDB.calcularValorAcumulado(inv)
-      if (montante > 0) {
-        BolsoDB.adicionarGanho({
-          nome: `Resgate investimento: ${inv.nome}`,
-          valor: montante,
-        })
-      }
-      dispatch(mostrarToastTemporario('Investimento resgatado e valor devolvido ao saldo.', 'success'))
-    }
-    return { inv, ..._snapshotInvestimentos(), finance: _snapshotFinance() }
+  async (id, { dispatch }) => {
+    // O backend já calcula o montante e faz o resgate ao saldo automaticamente
+    await InvestimentoDB.remover(id)
+    dispatch(mostrarToastTemporario('Investimento resgatado e valor devolvido ao saldo.', 'success'))
+    // Recarrega o estado financeiro junto
+    const [invSnapshot, financeSnapshot] = await Promise.all([
+      _snapshotInvestimentos(),
+      BolsoDB.getFullState(),
+    ])
+    return { ...invSnapshot, finance: financeSnapshot }
   }
 )
 
 export const editarInvestimento = createAsyncThunk(
   'investimentos/editar',
-  ({ id, patch }, { dispatch }) => {
-    InvestimentoDB.editar(id, patch)
+  async ({ id, patch }, { dispatch }) => {
+    await InvestimentoDB.editar(id, patch)
     dispatch(mostrarToastTemporario('Investimento atualizado!', 'success'))
     return _snapshotInvestimentos()
   }
@@ -76,20 +70,16 @@ export const editarInvestimento = createAsyncThunk(
 
 export const aportarInvestimento = createAsyncThunk(
   'investimentos/aportar',
-  ({ id, valor }, { dispatch, rejectWithValue }) => {
+  async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
-      const inv = InvestimentoDB.listar().find(i => i.id === id)
-      if (!inv) throw new Error('Investimento não encontrado')
-
-      BolsoDB.adicionarGasto({
-        nome: `Aporte: ${inv.nome}`,
-        valor,
-        categoria: 'Poupança',
-        tipo: 'debito',
-      })
-      InvestimentoDB.aportar(id, valor)
+      // O backend já desconta o valor do saldo e registra o aporte no investimento
+      await InvestimentoDB.aportar(id, valor)
       dispatch(mostrarToastTemporario('Aporte realizado com sucesso!', 'success'))
-      return { ..._snapshotInvestimentos(), finance: _snapshotFinance() }
+      const [invSnapshot, financeSnapshot] = await Promise.all([
+        _snapshotInvestimentos(),
+        BolsoDB.getFullState(),
+      ])
+      return { ...invSnapshot, finance: financeSnapshot }
     } catch (err) {
       console.error('[investimentosSlice] Erro no aporte:', err)
       dispatch(mostrarToastTemporario(err.message, 'error'))
@@ -98,7 +88,9 @@ export const aportarInvestimento = createAsyncThunk(
   }
 )
 
-
+// ─────────────────────────────────────────────────────────────
+//  Slice
+// ─────────────────────────────────────────────────────────────
 
 const initialState = investimentosAdapter.getInitialState({
   totais: { totalInvestido: 0, montanteTotal: 0, rendimentoTotal: 0 },
@@ -161,7 +153,9 @@ const investimentosSlice = createSlice({
 
 export default investimentosSlice.reducer
 
-
+// ─────────────────────────────────────────────────────────────
+//  Selectors
+// ─────────────────────────────────────────────────────────────
 
 const investimentosSelectors = investimentosAdapter.getSelectors(
   (state) => state.investimentos
@@ -175,4 +169,5 @@ export const selectInvestimentosStatus = (state) => state.investimentos.status
 export const selectInvestimentosError = (state) => state.investimentos.error
 
 // Re-exporta a função de cálculo do service para uso direto em componentes
+// (cálculo local de previsão — não requer chamada à API)
 export const calcularValorInvestimento = InvestimentoDB.calcularValorAcumulado

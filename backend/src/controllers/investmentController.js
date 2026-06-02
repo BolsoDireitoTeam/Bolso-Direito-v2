@@ -1,4 +1,5 @@
 const Investment = require('../models/investmentModel');
+const User = require('../models/userModel');
 
 // Calculo centralizado no backend (Service)
 function calcularValorAcumulado(inv, ateData) {
@@ -98,10 +99,23 @@ exports.update = async (req, res, next) => {
 
 exports.delete = async (req, res, next) => {
   try {
+    const userId = req.headers['x-user-id'];
     const { id } = req.params;
-    const deleted = await Investment.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ success: false, message: 'Não encontrado.' });
-    res.status(200).json({ success: true, message: 'Removido com sucesso.' });
+    const inv = await Investment.findById(id);
+    if (!inv) return res.status(404).json({ success: false, message: 'Não encontrado.' });
+
+    // Calcula o montante acumulado e credita de volta ao saldo do usuário
+    const { montante } = calcularValorAcumulado(inv);
+    if (montante > 0 && userId) {
+      const user = await User.findById(userId);
+      if (user) {
+        const saldoAtual = user.financeiro?.saldo || 0;
+        await User.findByIdAndUpdate(userId, { financeiro: { ...user.financeiro, saldo: Number((saldoAtual + montante).toFixed(2)) } });
+      }
+    }
+
+    await Investment.findByIdAndDelete(id);
+    res.status(200).json({ success: true, message: 'Investimento resgatado com sucesso.', montanteResgatado: montante });
   } catch (error) {
     next(error);
   }
@@ -109,15 +123,26 @@ exports.delete = async (req, res, next) => {
 
 exports.addAporte = async (req, res, next) => {
   try {
+    const userId = req.headers['x-user-id'];
     const { id } = req.params;
     const { valor, data } = req.body;
+    const valorNum = parseFloat(valor) || 0;
     
     const inv = await Investment.findById(id);
     if (!inv) return res.status(404).json({ success: false, message: 'Não encontrado.' });
 
+    // Debita o valor do saldo do usuário
+    if (valorNum > 0 && userId) {
+      const user = await User.findById(userId);
+      if (user) {
+        const saldoAtual = user.financeiro?.saldo || 0;
+        await User.findByIdAndUpdate(userId, { financeiro: { ...user.financeiro, saldo: Number((saldoAtual - valorNum).toFixed(2)) } });
+      }
+    }
+
     const novoAporte = {
       id: `ap-${Date.now()}`,
-      valor: parseFloat(valor) || 0,
+      valor: valorNum,
       data: data || new Date().toISOString().split('T')[0]
     };
 
