@@ -1,16 +1,9 @@
-// ============================================================
-//  Bolso Direito v2 — metasSlice.js
-//  Estado de metas financeiras. Integra com MetaDB e,
-//  para ações cruzadas (aporte/resgate), despacha para
-//  o financeSlice também.
-// ============================================================
+
 
 import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
 import { MetaDB } from '../../services/MetaDB'
 
-// ─────────────────────────────────────────────────────────────
-//  Entity Adapter (Passo 1)
-// ─────────────────────────────────────────────────────────────
+
 
 export const metasAdapter = createEntityAdapter({
   selectId: (meta) => meta.id,
@@ -18,9 +11,7 @@ export const metasAdapter = createEntityAdapter({
 import { BolsoDB } from '../../services/BolsoDB'
 import { mostrarToastTemporario } from './uiSlice'
 
-// ─────────────────────────────────────────────────────────────
-//  Helpers
-// ─────────────────────────────────────────────────────────────
+
 
 function _snapshotMetas() {
   return { metas: MetaDB.listar() }
@@ -36,9 +27,7 @@ function _snapshotFinance() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  Thunks
-// ─────────────────────────────────────────────────────────────
+
 
 export const initMetas = createAsyncThunk(
   'metas/init',
@@ -150,9 +139,7 @@ export const agendarMeta = createAsyncThunk(
   }
 )
 
-// ─────────────────────────────────────────────────────────────
-//  Slice
-// ─────────────────────────────────────────────────────────────
+
 
 const initialState = {
   metas: [],
@@ -190,9 +177,6 @@ const metasSlice = createSlice({
 
 export default metasSlice.reducer
 
-// ─────────────────────────────────────────────────────────────
-//  Selectors
-// ─────────────────────────────────────────────────────────────
 
 export const selectMetas = (state) => state.metas.metas
 export const selectMetasInitialized = (state) => state.metas.initialized

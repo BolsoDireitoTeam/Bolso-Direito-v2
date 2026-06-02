@@ -1,15 +1,7 @@
-// ============================================================
-//  Bolso Direito v2 — investimentosSlice.js
-//  Estado de investimentos. Integra com InvestimentoDB e,
-//  para ações cruzadas (aporte/resgate), opera no BolsoDB.
-// ============================================================
 
 import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
 import { InvestimentoDB } from '../../services/InvestimentoDB'
 
-// ─────────────────────────────────────────────────────────────
-//  Entity Adapter (Passo 1)
-// ─────────────────────────────────────────────────────────────
 
 export const investimentosAdapter = createEntityAdapter({
   selectId: (investimento) => investimento.id,
@@ -17,9 +9,7 @@ export const investimentosAdapter = createEntityAdapter({
 import { BolsoDB } from '../../services/BolsoDB'
 import { mostrarToastTemporario } from './uiSlice'
 
-// ─────────────────────────────────────────────────────────────
-//  Helpers
-// ─────────────────────────────────────────────────────────────
+
 
 function _snapshotInvestimentos() {
   return {
@@ -37,9 +27,7 @@ function _snapshotFinance() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  Thunks
-// ─────────────────────────────────────────────────────────────
+
 
 export const initInvestimentos = createAsyncThunk(
   'investimentos/init',
@@ -110,19 +98,16 @@ export const aportarInvestimento = createAsyncThunk(
   }
 )
 
-// ─────────────────────────────────────────────────────────────
-//  Slice
-// ─────────────────────────────────────────────────────────────
 
-const initialState = {
-  investimentos: [],
+
+const initialState = investimentosAdapter.getInitialState({
   totais: { totalInvestido: 0, montanteTotal: 0, rendimentoTotal: 0 },
   initialized: false,
-}
+})
 
 function applyInvSnapshot(state, action) {
   const { investimentos, totais } = action.payload
-  if (investimentos) state.investimentos = investimentos
+  if (investimentos) investimentosAdapter.setAll(state, investimentos)
   if (totais) state.totais = totais
 }
 
@@ -148,9 +133,7 @@ const investimentosSlice = createSlice({
 
 export default investimentosSlice.reducer
 
-// ─────────────────────────────────────────────────────────────
-//  Selectors
-// ─────────────────────────────────────────────────────────────
+
 
 export const selectInvestimentos = (state) => state.investimentos.investimentos
 export const selectInvestimentosTotais = (state) => state.investimentos.totais
