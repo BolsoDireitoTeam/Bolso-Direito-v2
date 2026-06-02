@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { novaMetaSchema } from '../validation/schemas'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { selectSaldo } from '../store/slices/financeSlice'
 import { adicionarMeta } from '../store/slices/metasSlice'
@@ -31,41 +34,28 @@ function NovaMeta() {
   const saldo = useAppSelector(selectSaldo)
 
   const [icone, setIcone] = useState('bi-bullseye')
-  const [nome, setNome] = useState('')
-  const [valorAlvo, setValorAlvo] = useState('')
-  const [aporteInicial, setAporteInicial] = useState('')
   const [cor, setCor] = useState('#4ee3c4')
-  const [erro, setErro] = useState('')
+  const [erroCustom, setErroCustom] = useState('')
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setErro('')
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+    resolver: yupResolver(novaMetaSchema),
+    defaultValues: { nome: '', valorAlvo: '', aporteInicial: 0 },
+  })
 
-    if (!nome.trim()) {
-      setErro('Dê um nome para sua meta.')
-      return
-    }
+  const onSubmit = (data) => {
+    setErroCustom('')
+    const aporte = data.aporteInicial || 0
 
-    const target = parseFloat(valorAlvo)
-    if (!target || target <= 0) {
-      setErro('Informe um valor-alvo válido.')
-      return
-    }
-
-    const aporte = parseFloat(aporteInicial) || 0
+    // Validação customizada: saldo insuficiente (não cabe no Yup puro)
     if (aporte > saldo) {
-      setErro(`Saldo insuficiente. Disponível: ${formatBRL(saldo)}`)
-      return
-    }
-    if (aporte < 0) {
-      setErro('Aporte não pode ser negativo.')
+      setErroCustom(`Saldo insuficiente. Disponível: ${formatBRL(saldo)}`)
       return
     }
 
     dispatch(adicionarMeta({
       icone,
-      nome: nome.trim(),
-      valorAlvo: target,
+      nome: data.nome.trim(),
+      valorAlvo: data.valorAlvo,
       cor,
       aporteInicial: aporte,
     }))
@@ -73,9 +63,12 @@ function NovaMeta() {
     navigate('/metas')
   }
 
-  /* Preview values */
-  const previewTarget = parseFloat(valorAlvo) || 0
-  const previewAporte = parseFloat(aporteInicial) || 0
+  /* Preview values via watch */
+  const nomeWatch = watch('nome', '')
+  const valorAlvoWatch = watch('valorAlvo', '')
+  const aporteInicialWatch = watch('aporteInicial', 0)
+  const previewTarget = parseFloat(valorAlvoWatch) || 0
+  const previewAporte = parseFloat(aporteInicialWatch) || 0
   const previewPct = previewTarget > 0
     ? Math.min(Math.round((previewAporte / previewTarget) * 100), 100)
     : 0
@@ -95,7 +88,7 @@ function NovaMeta() {
         {/* ── Formulário ── */}
         <div className="col-12 col-lg-7">
           <Card>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               {/* Icon picker */}
               <label className="meta-form-label">Ícone da Meta</label>
               <div className="meta-emoji-grid">
@@ -117,9 +110,9 @@ function NovaMeta() {
                 className="meta-form-input"
                 type="text"
                 placeholder="Ex: Viagem para Europa"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
+                {...register('nome')}
               />
+              {errors.nome && <div className="meta-form-error">{errors.nome.message}</div>}
 
               {/* Valor alvo */}
               <label className="meta-form-label">Valor a Alcançar (R$)</label>
@@ -129,9 +122,9 @@ function NovaMeta() {
                 step="0.01"
                 min="0"
                 placeholder="10000.00"
-                value={valorAlvo}
-                onChange={(e) => setValorAlvo(e.target.value)}
+                {...register('valorAlvo')}
               />
+              {errors.valorAlvo && <div className="meta-form-error">{errors.valorAlvo.message}</div>}
 
               {/* Aporte inicial */}
               <label className="meta-form-label">
@@ -143,9 +136,9 @@ function NovaMeta() {
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                value={aporteInicial}
-                onChange={(e) => setAporteInicial(e.target.value)}
+                {...register('aporteInicial')}
               />
+              {errors.aporteInicial && <div className="meta-form-error">{errors.aporteInicial.message}</div>}
 
               {/* Cor */}
               <label className="meta-form-label">Cor</label>
@@ -163,7 +156,7 @@ function NovaMeta() {
               </div>
 
               {/* Error */}
-              {erro && <div className="meta-form-error">{erro}</div>}
+              {erroCustom && <div className="meta-form-error">{erroCustom}</div>}
 
               {/* Actions */}
               <div className="meta-form-actions">
@@ -190,7 +183,7 @@ function NovaMeta() {
               <div className="meta-preview-icon" style={{ color: cor }}>
                 <i className={`bi ${icone}`}></i>
               </div>
-              <div className="meta-preview-name">{nome || 'Minha Meta'}</div>
+              <div className="meta-preview-name">{nomeWatch || 'Minha Meta'}</div>
               <div className="meta-preview-target">
                 {previewTarget > 0 ? formatBRL(previewTarget) : 'R$ 0,00'}
               </div>

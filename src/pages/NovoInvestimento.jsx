@@ -1,5 +1,7 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { novoInvestimentoSchema } from '../validation/schemas'
 import { useAppDispatch } from '../store/hooks'
 import { adicionarInvestimento } from '../store/slices/investimentosSlice'
 import { mesAtualLabel } from '../utils/format'
@@ -10,19 +12,17 @@ function NovoInvestimento() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
 
-  const [nome, setNome] = useState('')
-  const [tipo, setTipo] = useState('')
-  const [valor, setValor] = useState('')
-  const [taxaMensal, setTaxaMensal] = useState('0.80')
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(novoInvestimentoSchema),
+    defaultValues: { nome: '', tipo: '', valor: '', taxaMensal: '0.80' },
+  })
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
+  const onSubmit = (data) => {
     let cor = 'var(--bd-teal)'
     let icone = 'bi-safe'
     let labelTipo = 'Outros'
 
-    switch (tipo) {
+    switch (data.tipo) {
       case 'renda_fixa':
         cor = 'var(--bd-green)'; icone = 'bi-bank'; labelTipo = 'Renda Fixa'; break
       case 'acoes':
@@ -36,10 +36,10 @@ function NovoInvestimento() {
     }
 
     dispatch(adicionarInvestimento({
-      nome,
+      nome: data.nome,
       tipo: labelTipo,
-      valorInicial: parseFloat(valor) || 0,
-      taxaMensal: parseFloat(taxaMensal) / 100 || 0,
+      valorInicial: data.valor,
+      taxaMensal: data.taxaMensal / 100,
       icone,
       cor,
     }))
@@ -77,31 +77,28 @@ function NovoInvestimento() {
               Informações do Investimento
             </h5>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
               <div className="mb-3">
                 <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--bd-muted)' }}>Nome do ativo</label>
                 <input
                   type="text"
-                  className="form-control"
+                  className={`form-control${errors.nome ? ' is-invalid' : ''}`}
                   placeholder="Ex: Tesouro Selic 2029"
-                  required
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
+                  {...register('nome')}
                   style={{
                     background: 'rgba(0,0,0,0.1)',
                     border: '1px solid var(--bd-border)',
                     color: 'var(--bd-text)'
                   }}
                 />
+                {errors.nome && <div className="invalid-feedback" style={{display:'block'}}>{errors.nome.message}</div>}
               </div>
 
               <div className="mb-3">
                 <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--bd-muted)' }}>Tipo de Investimento</label>
                 <select
-                  className="form-select"
-                  required
-                  value={tipo}
-                  onChange={(e) => setTipo(e.target.value)}
+                  className={`form-select${errors.tipo ? ' is-invalid' : ''}`}
+                  {...register('tipo')}
                   style={{
                     background: 'rgba(0,0,0,0.1)',
                     border: '1px solid var(--bd-border)',
@@ -114,6 +111,7 @@ function NovoInvestimento() {
                   <option value="fundos">Fundos Imobiliários</option>
                   <option value="cripto">Criptomoedas</option>
                 </select>
+                {errors.tipo && <div className="invalid-feedback" style={{display:'block'}}>{errors.tipo.message}</div>}
               </div>
 
               <div className="mb-3">
@@ -121,17 +119,16 @@ function NovoInvestimento() {
                 <input
                   type="number"
                   step="0.01"
-                  className="form-control"
+                  className={`form-control${errors.valor ? ' is-invalid' : ''}`}
                   placeholder="0,00"
-                  required
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
+                  {...register('valor')}
                   style={{
                     background: 'rgba(0,0,0,0.1)',
                     border: '1px solid var(--bd-border)',
                     color: 'var(--bd-text)'
                   }}
                 />
+                {errors.valor && <div className="invalid-feedback" style={{display:'block'}}>{errors.valor.message}</div>}
               </div>
 
               <div className="mb-4">
@@ -142,16 +139,16 @@ function NovoInvestimento() {
                   type="number"
                   step="0.01"
                   min="0"
-                  className="form-control"
+                  className={`form-control${errors.taxaMensal ? ' is-invalid' : ''}`}
                   placeholder="0.80"
-                  value={taxaMensal}
-                  onChange={(e) => setTaxaMensal(e.target.value)}
+                  {...register('taxaMensal')}
                   style={{
                     background: 'rgba(0,0,0,0.1)',
                     border: '1px solid var(--bd-border)',
                     color: 'var(--bd-text)'
                   }}
                 />
+                {errors.taxaMensal && <div className="invalid-feedback" style={{display:'block'}}>{errors.taxaMensal.message}</div>}
                 <small style={{ color: 'var(--bd-muted)', fontSize: '0.75rem' }}>
                   Taxa fixa de rendimento mensal. Pode ser editada depois.
                 </small>

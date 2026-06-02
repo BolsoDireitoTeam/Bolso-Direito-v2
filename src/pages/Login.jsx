@@ -1,27 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { loginSchema } from "../validation/schemas";
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(loginSchema),
+    defaultValues: { username: "", password: "" },
+  });
 
-  const handleSubmit = (e) => {
-    e?.preventDefault();
-    setError("");
-
-    if (!username.trim() || !password.trim()) {
-      setError("Preencha usuário e senha.");
-      return;
-    }
-
+  const onSubmit = (data) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      if (typeof onLogin === "function") onLogin({ username });
+      if (typeof onLogin === "function") onLogin({ username: data.username });
     }, 800);
   };
 
@@ -38,7 +34,11 @@ export default function Login({ onLogin }) {
             <p className="login-subtitle">Controle financeiro pessoal</p>
           </div>
 
-          {error && <div className="login-error">{error}</div>}
+          {(errors.username || errors.password) && (
+            <div className="login-error">
+              {errors.username?.message || errors.password?.message}
+            </div>
+          )}
 
           <div className="login-field">
             <label className="login-label" htmlFor="bd-username">Usuário</label>
@@ -47,9 +47,7 @@ export default function Login({ onLogin }) {
               className="login-input"
               type="text"
               placeholder="seu@email.com"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              {...register("username")}
               autoComplete="username"
             />
           </div>
@@ -61,9 +59,7 @@ export default function Login({ onLogin }) {
               className="login-input"
               type="password"
               placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              {...register("password")}
               autoComplete="current-password"
             />
           </div>
@@ -74,7 +70,7 @@ export default function Login({ onLogin }) {
 
           <button
             className="btn-entrar"
-            onClick={handleSubmit}
+            onClick={handleSubmit(onSubmit)}
             disabled={loading}
           >
             {loading ? "Entrando..." : "Entrar"}

@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { registerSchema } from "../validation/schemas";
 
 function getPasswordStrength(password) {
   if (password.length === 0) return 0;
@@ -18,43 +21,21 @@ const strengthClass = ["", "active-weak", "active-medium", "active-strong"];
 
 export default function Register({ onLogin }) {
   const navigate = useNavigate();
-
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
-  const [errors, setErrors] = useState({});
-  const [globalError, setGlobalError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const strength = getPasswordStrength(form.password);
+  const { register, handleSubmit, watch, formState: { errors } } = useForm({
+    resolver: yupResolver(registerSchema),
+    defaultValues: { name: "", email: "", password: "", confirm: "" },
+  });
 
-  const set = (field) => (e) => {
-    setForm(prev => ({ ...prev, [field]: e.target.value }));
-    setErrors(prev => ({ ...prev, [field]: "" }));
-    setGlobalError("");
-  };
+  const passwordValue = watch("password", "");
+  const strength = getPasswordStrength(passwordValue);
 
-  const validate = () => {
-    const newErrors = {};
-    if (!form.name.trim()) newErrors.name = "Informe seu nome.";
-    if (!form.email.trim()) newErrors.email = "Informe seu e-mail.";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "E-mail inválido.";
-    if (!form.password) newErrors.password = "Crie uma senha.";
-    else if (form.password.length < 6) newErrors.password = "Mínimo 6 caracteres.";
-    if (!form.confirm) newErrors.confirm = "Confirme sua senha.";
-    else if (form.confirm !== form.password) newErrors.confirm = "As senhas não coincidem.";
-    return newErrors;
-  };
-
-  const handleSubmit = () => {
-    const newErrors = validate();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
+  const onSubmit = (data) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      if (typeof onLogin === "function") onLogin({ username: form.name });
+      if (typeof onLogin === "function") onLogin({ username: data.name });
       navigate("/");
     }, 900);
   };
@@ -72,8 +53,6 @@ export default function Register({ onLogin }) {
             <p className="login-subtitle">Crie sua conta grátis</p>
           </div>
 
-          {globalError && <div className="login-error">{globalError}</div>}
-
           <div className="login-field">
             <label className="login-label" htmlFor="reg-name">Nome</label>
             <input
@@ -81,11 +60,10 @@ export default function Register({ onLogin }) {
               className={`login-input${errors.name ? " input-error" : ""}`}
               type="text"
               placeholder="Seu nome completo"
-              value={form.name}
-              onChange={set("name")}
+              {...register("name")}
               autoComplete="name"
             />
-            {errors.name && <span className="field-error">{errors.name}</span>}
+            {errors.name && <span className="field-error">{errors.name.message}</span>}
           </div>
 
           <div className="login-field">
@@ -95,11 +73,10 @@ export default function Register({ onLogin }) {
               className={`login-input${errors.email ? " input-error" : ""}`}
               type="email"
               placeholder="seu@email.com"
-              value={form.email}
-              onChange={set("email")}
+              {...register("email")}
               autoComplete="email"
             />
-            {errors.email && <span className="field-error">{errors.email}</span>}
+            {errors.email && <span className="field-error">{errors.email.message}</span>}
           </div>
 
           <div className="login-field">
@@ -109,11 +86,10 @@ export default function Register({ onLogin }) {
               className={`login-input${errors.password ? " input-error" : ""}`}
               type="password"
               placeholder="Mínimo 6 caracteres"
-              value={form.password}
-              onChange={set("password")}
+              {...register("password")}
               autoComplete="new-password"
             />
-            {form.password.length > 0 && (
+            {passwordValue.length > 0 && (
               <>
                 <div className="password-strength">
                   {[1, 2, 3].map(i => (
@@ -126,7 +102,7 @@ export default function Register({ onLogin }) {
                 <span className="strength-label">Força: {strengthLabel[strength]}</span>
               </>
             )}
-            {errors.password && <span className="field-error">{errors.password}</span>}
+            {errors.password && <span className="field-error">{errors.password.message}</span>}
           </div>
 
           <div className="login-field">
@@ -136,17 +112,15 @@ export default function Register({ onLogin }) {
               className={`login-input${errors.confirm ? " input-error" : ""}`}
               type="password"
               placeholder="Repita a senha"
-              value={form.confirm}
-              onChange={set("confirm")}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              {...register("confirm")}
               autoComplete="new-password"
             />
-            {errors.confirm && <span className="field-error">{errors.confirm}</span>}
+            {errors.confirm && <span className="field-error">{errors.confirm.message}</span>}
           </div>
 
           <button
             className="btn-entrar"
-            onClick={handleSubmit}
+            onClick={handleSubmit(onSubmit)}
             disabled={loading}
           >
             {loading ? "Criando conta..." : "Criar conta"}

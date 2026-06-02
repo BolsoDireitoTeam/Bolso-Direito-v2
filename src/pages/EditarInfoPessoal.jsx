@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectUsuario, salvarUsuario } from '../store/slices/userSlice';
+import { editarInfoPessoalSchema } from '../validation/schemas';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -290,11 +291,18 @@ export default function EditarInfoPessoal() {
     reader.readAsDataURL(file);
   };
 
-  /* ── Salvar ── */
-  const handleSubmit = (e) => {
+  /* ── Salvar (com validação Yup) ── */
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (novaSenha && novaSenha !== confirmarSenha) {
-      setToast({ msg: "As senhas não coincidem.", type: "error" });
+    try {
+      await editarInfoPessoalSchema.validate(
+        { nome, email, celular, novaSenha, confirmarSenha },
+        { abortEarly: false }
+      );
+    } catch (err) {
+      // Exibe a primeira mensagem de erro do Yup
+      const msg = err.inner?.[0]?.message || err.message;
+      setToast({ msg, type: "error" });
       return;
     }
     dispatch(salvarUsuario({ nome, email, celular, avatar: avatarSrc }));
