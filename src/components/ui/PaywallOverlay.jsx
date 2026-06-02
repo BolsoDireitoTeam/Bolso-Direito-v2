@@ -35,15 +35,11 @@ function PaywallOverlay({ titulo, descricao }) {
         .paywall-overlay {
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(13, 21, 32, 0.6);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
+          background: rgba(13, 21, 32, 0.95);
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 1000;
-          border-radius: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .paywall-content {

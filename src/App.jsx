@@ -60,17 +60,24 @@ function App() {
   // ── Auto-virada de mês (hook adaptado) ──
   const { executarAutoVirada } = useAutoViradaMes()
 
-  // ── Inicializar stores e auto-virada ──
+  // ── Inicializar stores ──
+  const financeInitialized = useAppSelector((state) => state.finance.initialized)
+
   useEffect(() => {
     dispatch(initFinance())
     dispatch(initMetas())
     dispatch(initInvestimentos())
+  }, [dispatch])
 
-    const resultado = executarAutoVirada()
-    if (resultado?.alertaConfigurar) {
-      dispatch(setAlertaConfigurar(true))
+  // ── Auto-virada ──
+  useEffect(() => {
+    if (financeInitialized) {
+      const resultado = executarAutoVirada()
+      if (resultado?.alertaConfigurar) {
+        dispatch(setAlertaConfigurar(true))
+      }
     }
-  }, [dispatch, executarAutoVirada])
+  }, [financeInitialized, executarAutoVirada, dispatch])
 
   // ── Login handler (passado para Login/Register) ──
   const handleLogin = (dados) => {
