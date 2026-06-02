@@ -141,10 +141,9 @@ export const agendarMeta = createAsyncThunk(
 
 
 
-const initialState = {
-  metas: [],
+const initialState = metasAdapter.getInitialState({
   initialized: false,
-}
+})
 
 /**
  * Aplica snapshot de metas e, se presente, despacha os dados
@@ -152,7 +151,7 @@ const initialState = {
  */
 function applyMetasSnapshot(state, action) {
   const { metas } = action.payload
-  if (metas) state.metas = metas
+  if (metas) metasAdapter.setAll(state, metas)
 }
 
 const metasSlice = createSlice({
@@ -178,5 +177,10 @@ const metasSlice = createSlice({
 export default metasSlice.reducer
 
 
-export const selectMetas = (state) => state.metas.metas
+const metasSelectors = metasAdapter.getSelectors(
+  (state) => state.metas
+)
+
+export const selectMetas = metasSelectors.selectAll
+export const selectMetaById = metasSelectors.selectById
 export const selectMetasInitialized = (state) => state.metas.initialized

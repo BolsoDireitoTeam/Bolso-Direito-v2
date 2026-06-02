@@ -135,7 +135,12 @@ export default investimentosSlice.reducer
 
 
 
-export const selectInvestimentos = (state) => state.investimentos.investimentos
+const investimentosSelectors = investimentosAdapter.getSelectors(
+  (state) => state.investimentos
+)
+
+export const selectInvestimentos = investimentosSelectors.selectAll
+export const selectInvestimentoById = investimentosSelectors.selectById
 export const selectInvestimentosTotais = (state) => state.investimentos.totais
 export const selectInvestimentosInitialized = (state) => state.investimentos.initialized
 
