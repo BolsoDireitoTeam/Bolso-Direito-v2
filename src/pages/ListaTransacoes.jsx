@@ -6,12 +6,13 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
-import { selectTransacoes, CATEGORIAS, removerGanho, removerGastoDebito, removerGastoCredito, editarTransacao } from '../store/slices/financeSlice'
+import { selectTransacoes, selectFinanceStatus, selectFinanceError, CATEGORIAS, removerGanho, removerGastoDebito, removerGastoCredito, editarTransacao } from '../store/slices/financeSlice'
 import { selectMesAnoFiltro, mostrarToastTemporario } from '../store/slices/uiSlice'
 import { moeda, nomeMes, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 import TransactionItem from '../components/finance/TransactionItem'
+import { LoadingSpinner, ErrorBanner } from '../components/ui/LoadingSpinner'
 import { gerarCSV, baixarCSV } from '../utils/csvExporter'
 import '../styles/transacoes.css'
 
@@ -30,6 +31,8 @@ function gerarMeses(n = 6) {
 function ListaTransacoes() {
   const dispatch = useAppDispatch()
   const transacoes = useAppSelector(selectTransacoes)
+  const financeStatus = useAppSelector(selectFinanceStatus)
+  const financeError = useAppSelector(selectFinanceError)
   const categorias = CATEGORIAS
   const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
   const mostrarToast = (msg, tipo) => dispatch(mostrarToastTemporario(msg, tipo))
@@ -118,6 +121,9 @@ function ListaTransacoes() {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       <PageHeader title="Transações" subtitle="Histórico detalhado" />
+
+      {financeStatus === 'loading' && <LoadingSpinner mensagem="Carregando transações..." />}
+      {financeStatus === 'failed' && <ErrorBanner mensagem={financeError || 'Erro ao carregar transações.'} />}
 
       {/* Filtros */}
       <div className="transacoes-filtros">

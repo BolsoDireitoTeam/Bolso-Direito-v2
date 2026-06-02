@@ -143,6 +143,8 @@ export const agendarMeta = createAsyncThunk(
 
 const initialState = metasAdapter.getInitialState({
   initialized: false,
+  status: 'idle',
+  error: null,
 })
 
 /**
@@ -160,16 +162,42 @@ const metasSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(initMetas.pending, (state) => {
+        state.status = 'loading'
+        state.error = null
+      })
       .addCase(initMetas.fulfilled, (state, action) => {
         applyMetasSnapshot(state, action)
         state.initialized = true
+        state.status = 'succeeded'
       })
+      .addCase(initMetas.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message
+      })
+      // Genérico: pending
+      .addMatcher(
+        (a) => a.type.startsWith('metas/') && a.type.endsWith('/pending') && a.type !== 'metas/init/pending',
+        (state) => { state.status = 'loading' }
+      )
+      // Genérico: fulfilled
       .addMatcher(
         (action) =>
           action.type.startsWith('metas/') &&
           action.type.endsWith('/fulfilled') &&
           action.type !== 'metas/init/fulfilled',
-        applyMetasSnapshot
+        (state, action) => {
+          applyMetasSnapshot(state, action)
+          state.status = 'succeeded'
+        }
+      )
+      // Genérico: rejected
+      .addMatcher(
+        (a) => a.type.startsWith('metas/') && a.type.endsWith('/rejected'),
+        (state, action) => {
+          state.status = 'failed'
+          state.error = action.error?.message ?? 'Erro desconhecido'
+        }
       )
   },
 })
@@ -184,3 +212,5 @@ const metasSelectors = metasAdapter.getSelectors(
 export const selectMetas = metasSelectors.selectAll
 export const selectMetaById = metasSelectors.selectById
 export const selectMetasInitialized = (state) => state.metas.initialized
+export const selectMetasStatus = (state) => state.metas.status
+export const selectMetasError = (state) => state.metas.error

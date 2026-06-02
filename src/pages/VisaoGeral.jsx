@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppSelector } from '../store/hooks'
-import { selectSaldo, selectTransacoes, selectReceitasMes, selectDespesasMes, selectTotalFatura, selectGastosPorCategoria } from '../store/slices/financeSlice'
+import { selectSaldo, selectTransacoes, selectFinanceStatus, selectReceitasMes, selectDespesasMes, selectTotalFatura, selectGastosPorCategoria } from '../store/slices/financeSlice'
 import { selectMetas } from '../store/slices/metasSlice'
 import { selectInvestimentosTotais } from '../store/slices/investimentosSlice'
 import { selectUsuario } from '../store/slices/userSlice'
@@ -20,9 +20,11 @@ import DoughnutChart from '../components/charts/DoughnutChart'
 import LineChart from '../components/charts/LineChart'
 import RadarChart from '../components/charts/RadarChart'
 import GroupedBarChart from '../components/charts/GroupedBarChart'
+import { LoadingSpinner, SkeletonList } from '../components/ui/LoadingSpinner'
 
 function VisaoGeral({ onAddClick }) {
   const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
+  const financeStatus = useAppSelector(selectFinanceStatus)
   const saldo = useAppSelector(selectSaldo)
   const transacoes = useAppSelector(selectTransacoes)
   const receitasMes = useAppSelector((state) => selectReceitasMes(state, mesAnoFiltro))
@@ -198,6 +200,8 @@ function VisaoGeral({ onAddClick }) {
         title="Visão Geral"
         dateBadge={nomeMes(mesAnoFiltro)}
       />
+
+      {financeStatus === 'loading' && <SkeletonList count={5} />}
 
       {/* Alertas de fatura */}
       <AlertaBanner />

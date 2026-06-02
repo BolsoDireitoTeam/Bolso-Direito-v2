@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '../store/hooks'
 import { selectSaldo, selectConfiguracoes } from '../store/slices/financeSlice'
-import { selectMetas } from '../store/slices/metasSlice'
+import { selectMetas, selectMetasStatus, selectMetasError } from '../store/slices/metasSlice'
 import PageHeader from '../components/ui/PageHeader'
 import ProgressBar from '../components/ui/ProgressBar'
 import PaywallOverlay from '../components/ui/PaywallOverlay'
+import { LoadingSpinner, ErrorBanner } from '../components/ui/LoadingSpinner'
 
 function formatBRL(val) {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -15,6 +16,8 @@ function Metas() {
   const metas = useAppSelector(selectMetas)
   const saldo = useAppSelector(selectSaldo)
   const configuracoes = useAppSelector(selectConfiguracoes)
+  const metasStatus = useAppSelector(selectMetasStatus)
+  const metasError = useAppSelector(selectMetasError)
   const isPremium = configuracoes.plano === 'pago'
 
   const totalAlocado = metas.reduce((s, m) => s + m.valorAtual, 0)
@@ -30,6 +33,8 @@ function Metas() {
         />
       )}
 
+      {metasStatus === 'loading' && <LoadingSpinner mensagem="Carregando metas..." />}
+      {metasStatus === 'failed' && <ErrorBanner mensagem={metasError || 'Erro ao carregar metas.'} />}
       <div style={{ filter: isPremium ? 'none' : 'blur(4px)', pointerEvents: isPremium ? 'auto' : 'none' }}>
         <PageHeader
           greeting="Seus Objetivos"

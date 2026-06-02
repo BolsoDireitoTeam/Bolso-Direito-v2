@@ -4,7 +4,7 @@
 //  configurações do sistema. Integra com BolsoDB e BolsoEngine.
 // ============================================================
 
-import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createSelector, createEntityAdapter } from '@reduxjs/toolkit'
 import { BolsoDB } from '../../services/BolsoDB'
 import { BolsoEngine } from '../../services/BolsoEngine'
 
@@ -175,15 +175,22 @@ export const salvarConfiguracoes = createAsyncThunk(
 //  Slice
 // ─────────────────────────────────────────────────────────────
 
-const initialState = {
+// ── EntityAdapter para transações (normalização { ids, entities }) ──
+export const transacoesAdapter = createEntityAdapter({
+  selectId: (tx) => tx.id,
+  sortComparer: (a, b) => new Date(b.data) - new Date(a.data),
+})
+
+const initialState = transacoesAdapter.getInitialState({
   saldo: 0,
-  transacoes: [],
   faturas: {},
   ganhosMensais: [],
   gastosMensais: [],
   configuracoes: {},
   initialized: false,
-}
+  status: 'idle',     // 'idle' | 'loading' | 'succeeded' | 'failed'
+  error: null,        // string | null
+})
 
 /**
  * Reducer helper: aplica o snapshot retornado pelos thunks.
@@ -191,7 +198,7 @@ const initialState = {
 function applySnapshot(state, action) {
   const { saldo, transacoes, estado, configuracoes } = action.payload
   if (saldo !== undefined) state.saldo = saldo
-  if (transacoes) state.transacoes = transacoes
+  if (transacoes) transacoesAdapter.setAll(state, transacoes)
   if (estado) {
     state.faturas = estado.faturas ?? {}
     state.ganhosMensais = estado.ganhosMensais ?? []
@@ -206,26 +213,58 @@ const financeSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // ── Init ──
+      .addCase(initFinance.pending, (state) => {
+        state.status = 'loading'
+        state.error = null
+      })
       .addCase(initFinance.fulfilled, (state, action) => {
         applySnapshot(state, action)
         state.initialized = true
+        state.status = 'succeeded'
       })
+      .addCase(initFinance.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message
+      })
+      // ── Configurações ──
       .addCase(salvarConfiguracoes.fulfilled, (state, action) => {
         state.configuracoes = action.payload.configuracoes
       })
-      // Cross-slice sync: quando metas/investimentos modificam BolsoDB
+      // ── Cross-slice sync ──
       .addMatcher(
         (action) => action.type === 'finance/crossSync',
         applySnapshot
       )
-      // Todos os outros thunks seguem o mesmo padrão: aplicar snapshot
+      // ── Genérico: pending para qualquer thunk finance/* ──
+      .addMatcher(
+        (a) =>
+          a.type.startsWith('finance/') &&
+          a.type.endsWith('/pending') &&
+          a.type !== 'finance/init/pending',
+        (state) => { state.status = 'loading' }
+      )
+      // ── Genérico: fulfilled para qualquer thunk finance/* ──
       .addMatcher(
         (action) =>
           action.type.startsWith('finance/') &&
           action.type.endsWith('/fulfilled') &&
           action.type !== 'finance/init/fulfilled' &&
           action.type !== 'finance/salvarConfiguracoes/fulfilled',
-        applySnapshot
+        (state, action) => {
+          applySnapshot(state, action)
+          state.status = 'succeeded'
+        }
+      )
+      // ── Genérico: rejected para qualquer thunk finance/* ──
+      .addMatcher(
+        (a) =>
+          a.type.startsWith('finance/') &&
+          a.type.endsWith('/rejected'),
+        (state, action) => {
+          state.status = 'failed'
+          state.error = action.error?.message ?? 'Erro desconhecido'
+        }
       )
   },
 })
@@ -236,13 +275,22 @@ export default financeSlice.reducer
 //  Selectors Básicos
 // ─────────────────────────────────────────────────────────────
 
+// ── Selectors via EntityAdapter ──
+const transacoesSelectors = transacoesAdapter.getSelectors(
+  (state) => state.finance
+)
+
 export const selectSaldo = (state) => state.finance.saldo
-export const selectTransacoes = (state) => state.finance.transacoes
+export const selectTransacoes = transacoesSelectors.selectAll
+export const selectTransacaoById = transacoesSelectors.selectById
+export const selectTotalTransacoes = transacoesSelectors.selectTotal
 export const selectFaturas = (state) => state.finance.faturas
 export const selectGanhosMensais = (state) => state.finance.ganhosMensais
 export const selectGastosMensais = (state) => state.finance.gastosMensais
 export const selectConfiguracoes = (state) => state.finance.configuracoes
 export const selectFinanceInitialized = (state) => state.finance.initialized
+export const selectFinanceStatus = (state) => state.finance.status
+export const selectFinanceError = (state) => state.finance.error
 
 // ─────────────────────────────────────────────────────────────
 //  Selectors Derivados (Memoized via createSelector)

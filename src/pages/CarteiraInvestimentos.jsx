@@ -1,17 +1,20 @@
 import { Link } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { selectConfiguracoes, selectSaldo } from '../store/slices/financeSlice'
-import { selectInvestimentos, calcularValorInvestimento, removerInvestimento, aportarInvestimento } from '../store/slices/investimentosSlice'
+import { selectInvestimentos, selectInvestimentosStatus, selectInvestimentosError, calcularValorInvestimento, removerInvestimento, aportarInvestimento } from '../store/slices/investimentosSlice'
 import { moeda, mesAtualLabel } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import PaywallOverlay from '../components/ui/PaywallOverlay'
 import Card from '../components/ui/Card'
+import { LoadingSpinner, ErrorBanner } from '../components/ui/LoadingSpinner'
 
 function CarteiraInvestimentos({ onAddClick }) {
   const dispatch = useAppDispatch()
   const configuracoes = useAppSelector(selectConfiguracoes)
   const saldo = useAppSelector(selectSaldo)
   const investimentos = useAppSelector(selectInvestimentos)
+  const invStatus = useAppSelector(selectInvestimentosStatus)
+  const invError = useAppSelector(selectInvestimentosError)
   const isPremium = configuracoes.plano === 'pago'
 
   return (
@@ -22,6 +25,9 @@ function CarteiraInvestimentos({ onAddClick }) {
           descricao="Monitore a evolução do seu patrimônio, rendimentos mensais e diversificação de ativos."
         />
       )}
+
+      {invStatus === 'loading' && <LoadingSpinner mensagem="Carregando investimentos..." />}
+      {invStatus === 'failed' && <ErrorBanner mensagem={invError || 'Erro ao carregar investimentos.'} />}
 
       <div style={{ filter: isPremium ? 'none' : 'blur(4px)', pointerEvents: isPremium ? 'auto' : 'none' }}>
         <PageHeader

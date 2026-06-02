@@ -103,6 +103,8 @@ export const aportarInvestimento = createAsyncThunk(
 const initialState = investimentosAdapter.getInitialState({
   totais: { totalInvestido: 0, montanteTotal: 0, rendimentoTotal: 0 },
   initialized: false,
+  status: 'idle',
+  error: null,
 })
 
 function applyInvSnapshot(state, action) {
@@ -117,16 +119,42 @@ const investimentosSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(initInvestimentos.pending, (state) => {
+        state.status = 'loading'
+        state.error = null
+      })
       .addCase(initInvestimentos.fulfilled, (state, action) => {
         applyInvSnapshot(state, action)
         state.initialized = true
+        state.status = 'succeeded'
       })
+      .addCase(initInvestimentos.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message
+      })
+      // Genérico: pending
+      .addMatcher(
+        (a) => a.type.startsWith('investimentos/') && a.type.endsWith('/pending') && a.type !== 'investimentos/init/pending',
+        (state) => { state.status = 'loading' }
+      )
+      // Genérico: fulfilled
       .addMatcher(
         (action) =>
           action.type.startsWith('investimentos/') &&
           action.type.endsWith('/fulfilled') &&
           action.type !== 'investimentos/init/fulfilled',
-        applyInvSnapshot
+        (state, action) => {
+          applyInvSnapshot(state, action)
+          state.status = 'succeeded'
+        }
+      )
+      // Genérico: rejected
+      .addMatcher(
+        (a) => a.type.startsWith('investimentos/') && a.type.endsWith('/rejected'),
+        (state, action) => {
+          state.status = 'failed'
+          state.error = action.error?.message ?? 'Erro desconhecido'
+        }
       )
   },
 })
@@ -143,6 +171,8 @@ export const selectInvestimentos = investimentosSelectors.selectAll
 export const selectInvestimentoById = investimentosSelectors.selectById
 export const selectInvestimentosTotais = (state) => state.investimentos.totais
 export const selectInvestimentosInitialized = (state) => state.investimentos.initialized
+export const selectInvestimentosStatus = (state) => state.investimentos.status
+export const selectInvestimentosError = (state) => state.investimentos.error
 
 // Re-exporta a função de cálculo do service para uso direto em componentes
 export const calcularValorInvestimento = InvestimentoDB.calcularValorAcumulado
