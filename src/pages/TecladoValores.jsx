@@ -4,7 +4,7 @@
 //  Origem: app.js L207-315 (v1) — reescrito em React
 // ============================================================
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
 import { adicionarGanho } from '../store/slices/financeSlice'
@@ -23,7 +23,7 @@ const TECLAS = [
 function avaliarExpressao(expr) {
   try {
     const limpa = expr.replace(/,/g, '.').replace(/[^0-9+\-.]/g, '')
-    const resultado = Function('"use strict"; return (' + limpa + ')')()
+    const resultado = Function('"use strict"; return (' + limpa + ')')(  )
     return typeof resultado === 'number' && isFinite(resultado) ? resultado : null
   } catch {
     return null
@@ -52,6 +52,7 @@ function TecladoValores() {
 
   // Valor calculado para exibição
   const valorCalculado = avaliarExpressao(expressao) ?? 0
+  const haValor = valorCalculado > 0
 
   const handleTecla = useCallback((tecla) => {
     if (tecla === '⌫') {
@@ -108,7 +109,31 @@ function TecladoValores() {
     }
   }
 
-  const haValor = valorCalculado > 0
+  // Ref para sempre ter a versão mais recente de handleConfirmar no listener
+  const confirmarRef = useRef(handleConfirmar)
+  confirmarRef.current = handleConfirmar
+
+  // ── Suporte a input via teclado físico ──
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignora se o foco estiver no campo de texto (descrição)
+      if (e.target.tagName.toLowerCase() === 'input') return
+
+      const key = e.key
+      if (/^[0-9+\-.,]$/.test(key)) {
+        e.preventDefault()
+        handleTecla(key === ',' ? '.' : key)
+      } else if (key === 'Backspace') {
+        e.preventDefault()
+        handleTecla('⌫')
+      } else if (key === 'Enter') {
+        e.preventDefault()
+        confirmarRef.current()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleTecla])
 
   return (
     <div className="teclado-page">
