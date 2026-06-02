@@ -4,8 +4,16 @@
 //  para ações cruzadas (aporte/resgate), opera no BolsoDB.
 // ============================================================
 
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
 import { InvestimentoDB } from '../../services/InvestimentoDB'
+
+// ─────────────────────────────────────────────────────────────
+//  Entity Adapter (Passo 1)
+// ─────────────────────────────────────────────────────────────
+
+export const investimentosAdapter = createEntityAdapter({
+  selectId: (investimento) => investimento.id,
+})
 import { BolsoDB } from '../../services/BolsoDB'
 import { mostrarToastTemporario } from './uiSlice'
 

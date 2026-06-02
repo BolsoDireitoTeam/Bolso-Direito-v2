@@ -5,8 +5,16 @@
 //  o financeSlice também.
 // ============================================================
 
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
 import { MetaDB } from '../../services/MetaDB'
+
+// ─────────────────────────────────────────────────────────────
+//  Entity Adapter (Passo 1)
+// ─────────────────────────────────────────────────────────────
+
+export const metasAdapter = createEntityAdapter({
+  selectId: (meta) => meta.id,
+})
 import { BolsoDB } from '../../services/BolsoDB'
 import { mostrarToastTemporario } from './uiSlice'
 
