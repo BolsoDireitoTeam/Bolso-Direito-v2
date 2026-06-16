@@ -1,37 +1,80 @@
-const transactions = []; // Collection
+const mongoose = require('mongoose');
 
-const Transaction = {
-  find: async (query = {}) => {
-    return transactions.filter(t => {
-      let match = true;
-      for (const key in query) {
-        if (t[key] !== query[key]) match = false;
-      }
-      return match;
-    });
+const transactionSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true,
   },
-  findById: async (id) => transactions.find(t => t.id === id) || null,
-  create: async (data) => {
-    const newTx = {
-      id: `txn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      ...data,
-      createdAt: new Date(),
-    };
-    transactions.push(newTx);
-    return newTx;
+  tipo: {
+    type: String,
+    required: [true, 'O tipo da transação é obrigatório.'],
+    enum: ['ganho', 'gasto'],
   },
-  findByIdAndUpdate: async (id, updateData) => {
-    const idx = transactions.findIndex(t => t.id === id);
-    if (idx === -1) return null;
-    transactions[idx] = { ...transactions[idx], ...updateData, updatedAt: new Date() };
-    return transactions[idx];
+  subtipo: {
+    type: String,
+    enum: ['debito', 'credito'],
+    default: undefined,
   },
-  findByIdAndDelete: async (id) => {
-    const idx = transactions.findIndex(t => t.id === id);
-    if (idx === -1) return null;
-    const [deleted] = transactions.splice(idx, 1);
-    return deleted;
-  }
-};
+  nome: {
+    type: String,
+    required: [true, 'O nome da transação é obrigatório.'],
+    trim: true,
+  },
+  valor: {
+    type: Number,
+    required: [true, 'O valor é obrigatório.'],
+  },
+  categoria: {
+    type: String,
+    default: null,
+  },
+  data: {
+    type: String,
+    default: null,
+  },
+  parcela: {
+    type: Number,
+    default: undefined,
+  },
+  totalParcelas: {
+    type: Number,
+    default: undefined,
+  },
+  dataCompra: {
+    type: String,
+    default: undefined,
+  },
+  mesFatura: {
+    type: String,
+    default: undefined,
+    index: true,
+  },
+  isInvoiceItem: {
+    type: Boolean,
+    default: false,
+  },
+  parentId: {
+    type: String,
+    default: undefined,
+  },
+  origem: {
+    type: String,
+    default: undefined, // 'mensal', 'fatura', 'meta'
+  },
+  metaId: {
+    type: String,
+    default: undefined,
+  },
+  mesVirada: {
+    type: String,
+    default: undefined,
+  },
+}, {
+  timestamps: true,
+});
+
+const Transaction = mongoose.model('Transaction', transactionSchema);
 
 module.exports = Transaction;

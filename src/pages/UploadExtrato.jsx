@@ -1,13 +1,14 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../store/hooks'
-import { CATEGORIAS, importarTransacoes } from '../store/slices/financeSlice'
+import { CATEGORIAS, initFinance } from '../store/slices/financeSlice'
 import { mostrarToastTemporario } from '../store/slices/uiSlice'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 import { parsearCSV } from '../utils/csvParser'
 import { moeda } from '../utils/format'
 import ClassificadorDB from '../services/ClassificadorDB'
+import { api } from '../services/api'
 
 function UploadExtrato() {
   const navigate = useNavigate()
@@ -59,7 +60,7 @@ function UploadExtrato() {
     setTransacoes(prev => prev.map(t => t.idTemp === id ? { ...t, categoria: novaCat } : t))
   }
 
-  const handleImportar = () => {
+  const handleImportar = async () => {
     const selecionadas = transacoes.filter(t => t.selecionada)
     if (selecionadas.length === 0) {
       mostrarToast('Selecione pelo menos uma transação.', 'error')
@@ -71,9 +72,25 @@ function UploadExtrato() {
       ClassificadorDB.aprender(tx.nome, tx.categoria)
     })
 
-    dispatch(importarTransacoes(selecionadas))
-    mostrarToast('Importação concluída com sucesso!', 'success')
-    navigate('/transacoes')
+    try {
+      await api.post('/transactions/import-batch', {
+        transacoes: selecionadas.map(tx => ({
+          tipo: tx.tipo,
+          subtipo: tx.subtipo || 'debito',
+          nome: tx.nome,
+          valor: tx.valor,
+          categoria: tx.categoria || 'Outros',
+          data: tx.data,
+          parcelas: tx.parcelas || 1,
+        }))
+      })
+      // Re-hidratar o estado financeiro
+      dispatch(initFinance())
+      mostrarToast('Importação concluída com sucesso!', 'success')
+      navigate('/transacoes')
+    } catch (error) {
+      mostrarToast(error.message || 'Erro ao importar transações.', 'error')
+    }
   }
 
   const dropZoneStyle = {

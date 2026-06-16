@@ -34,19 +34,20 @@ function calcularValorAcumulado(inv, ateData) {
   };
 }
 
-exports.getAll = async (req, res, next) => {
+exports.getAll = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const invs = await Investment.find({ userId });
 
     let totalInvestido = 0;
     let montanteTotal = 0;
 
     const data = invs.map(inv => {
-      const { montante, rendimento, totalAportado } = calcularValorAcumulado(inv);
+      const invObj = inv.toObject();
+      const { montante, rendimento, totalAportado } = calcularValorAcumulado(invObj);
       totalInvestido += totalAportado;
       montanteTotal += montante;
-      return { ...inv, montante, rendimento, totalAportado };
+      return { ...invObj, montante, rendimento, totalAportado };
     });
 
     res.status(200).json({ 
@@ -59,71 +60,73 @@ exports.getAll = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.getById = async (req, res, next) => {
+exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
     const inv = await Investment.findById(id);
     if (!inv) return res.status(404).json({ success: false, message: 'Investimento não encontrado.' });
     
-    const calculo = calcularValorAcumulado(inv);
-    res.status(200).json({ success: true, data: { ...inv, ...calculo } });
+    const invObj = inv.toObject();
+    const calculo = calcularValorAcumulado(invObj);
+    res.status(200).json({ success: true, data: { ...invObj, ...calculo } });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.create = async (req, res, next) => {
+exports.create = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const novoInv = await Investment.create({ ...req.body, userId });
     res.status(201).json({ success: true, data: novoInv });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.update = async (req, res, next) => {
+exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await Investment.findByIdAndUpdate(id, req.body);
+    const updated = await Investment.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
     if (!updated) return res.status(404).json({ success: false, message: 'Não encontrado.' });
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.delete = async (req, res, next) => {
+exports.delete = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const { id } = req.params;
     const inv = await Investment.findById(id);
     if (!inv) return res.status(404).json({ success: false, message: 'Não encontrado.' });
 
     // Calcula o montante acumulado e credita de volta ao saldo do usuário
-    const { montante } = calcularValorAcumulado(inv);
+    const invObj = inv.toObject();
+    const { montante } = calcularValorAcumulado(invObj);
     if (montante > 0 && userId) {
       const user = await User.findById(userId);
       if (user) {
         const saldoAtual = user.financeiro?.saldo || 0;
-        await User.findByIdAndUpdate(userId, { financeiro: { ...user.financeiro, saldo: Number((saldoAtual + montante).toFixed(2)) } });
+        await User.findByIdAndUpdate(userId, { 'financeiro.saldo': Number((saldoAtual + montante).toFixed(2)) });
       }
     }
 
     await Investment.findByIdAndDelete(id);
     res.status(200).json({ success: true, message: 'Investimento resgatado com sucesso.', montanteResgatado: montante });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.addAporte = async (req, res, next) => {
+exports.addAporte = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const { id } = req.params;
     const { valor, data } = req.body;
     const valorNum = parseFloat(valor) || 0;
@@ -136,21 +139,19 @@ exports.addAporte = async (req, res, next) => {
       const user = await User.findById(userId);
       if (user) {
         const saldoAtual = user.financeiro?.saldo || 0;
-        await User.findByIdAndUpdate(userId, { financeiro: { ...user.financeiro, saldo: Number((saldoAtual - valorNum).toFixed(2)) } });
+        await User.findByIdAndUpdate(userId, { 'financeiro.saldo': Number((saldoAtual - valorNum).toFixed(2)) });
       }
     }
 
-    const novoAporte = {
-      id: `ap-${Date.now()}`,
-      valor: valorNum,
-      data: data || new Date().toISOString().split('T')[0]
-    };
-
-    const aportesAtualizados = [...inv.aportes, novoAporte];
-    const updated = await Investment.findByIdAndUpdate(id, { aportes: aportesAtualizados });
+    // Adiciona o aporte ao array usando $push do Mongoose
+    const updated = await Investment.findByIdAndUpdate(
+      id,
+      { $push: { aportes: { valor: valorNum, data: data || new Date().toISOString().split('T')[0] } } },
+      { new: true }
+    );
 
     res.status(201).json({ success: true, data: updated });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };

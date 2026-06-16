@@ -1,39 +1,55 @@
-const goals = [];
+const mongoose = require('mongoose');
 
-const Goal = {
-  find: async (query = {}) => {
-    return goals.filter(g => {
-      let match = true;
-      for (const key in query) {
-        if (g[key] !== query[key]) match = false;
-      }
-      return match;
-    });
+const aporteSchema = new mongoose.Schema({
+  valor: { type: Number, required: true },
+  data: { type: String, required: true },
+  tipo: { type: String, enum: ['aporte', 'resgate', 'autopilot'], default: 'aporte' },
+}, { _id: true });
+
+const goalSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true,
   },
-  findById: async (id) => goals.find(g => g.id === id) || null,
-  create: async (data) => {
-    const newGoal = {
-      id: `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      ...data,
-      valorAtual: data.valorAtual || 0,
-      aportes: data.aportes || [],
-      createdAt: new Date(),
-    };
-    goals.push(newGoal);
-    return newGoal;
+  nome: {
+    type: String,
+    required: [true, 'O nome da meta é obrigatório.'],
+    trim: true,
   },
-  findByIdAndUpdate: async (id, updateData) => {
-    const idx = goals.findIndex(g => g.id === id);
-    if (idx === -1) return null;
-    goals[idx] = { ...goals[idx], ...updateData, updatedAt: new Date() };
-    return goals[idx];
+  valorAlvo: {
+    type: Number,
+    required: [true, 'O valor alvo é obrigatório.'],
   },
-  findByIdAndDelete: async (id) => {
-    const idx = goals.findIndex(g => g.id === id);
-    if (idx === -1) return null;
-    const [deleted] = goals.splice(idx, 1);
-    return deleted;
-  }
-};
+  valorAtual: {
+    type: Number,
+    default: 0,
+  },
+  prazo: {
+    type: String,
+    default: null,
+  },
+  icone: {
+    type: String,
+    default: null,
+  },
+  cor: {
+    type: String,
+    default: null,
+  },
+  agendamento: {
+    ativo: { type: Boolean, default: false },
+    valor: { type: Number, default: 0 },
+  },
+  aportes: {
+    type: [aporteSchema],
+    default: [],
+  },
+}, {
+  timestamps: true,
+});
+
+const Goal = mongoose.model('Goal', goalSchema);
 
 module.exports = Goal;

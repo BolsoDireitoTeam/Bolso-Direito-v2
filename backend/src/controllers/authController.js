@@ -1,126 +1,130 @@
+const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
-exports.register = async (req, res, next) => {
-  try {
-    const { nome, email, senha } = req.body;
-    // Sem criptografia real por ora (apenas simulação)
-    
-    // Verifica se já existe
-    const exists = await User.findOne({ email });
-    if (exists) {
-      return res.status(400).json({ success: false, message: 'Email já cadastrado.' });
+/**
+ * Gera um JWT assinado com o ID do usuário.
+ */
+function generateToken(userId) {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  });
+}
+
+exports.register = async (req, res) => {
+  const { nome, email, senha } = req.body;
+
+  // Verifica se já existe
+  const exists = await User.findOne({ email });
+  if (exists) {
+    return res.status(400).json({ success: false, message: 'Email já cadastrado.' });
+  }
+
+  // A senha será hasheada automaticamente pelo hook pre('save') do model
+  const newUser = await User.create({
+    nome,
+    email,
+    senha,
+    financeiro: { saldo: 0, diaVencimentoCartao: null, limiteCartao: 0, plano: 'gratuito' },
+  });
+
+  // Gera token real
+  const token = generateToken(newUser._id);
+
+  // Retorna sem o campo senha
+  const userData = newUser.toObject();
+  delete userData.senha;
+
+  res.status(201).json({ success: true, token, data: userData });
+};
+
+exports.login = async (req, res) => {
+  const { email, senha } = req.body;
+
+  if (!email || !senha) {
+    return res.status(400).json({ success: false, message: 'Email e senha são obrigatórios.' });
+  }
+
+  // Busca o usuário incluindo o campo senha (que é select: false por padrão)
+  const user = await User.findOne({ email }).select('+senha');
+
+  if (!user || !(await user.matchPassword(senha))) {
+    return res.status(401).json({ success: false, message: 'Credenciais inválidas.' });
+  }
+
+  // Gera token real
+  const token = generateToken(user._id);
+
+  // Retorna sem o campo senha
+  const userData = user.toObject();
+  delete userData.senha;
+
+  res.status(200).json({ success: true, token, data: userData });
+};
+
+exports.getProfile = async (req, res) => {
+  const userId = req.user;
+
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+
+  res.status(200).json({ success: true, data: user });
+};
+
+exports.getFullState = async (req, res) => {
+  const userId = req.user;
+
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+
+  const Transaction = require('../models/transactionModel');
+  const RecurrentTransaction = require('../models/recurrentModel');
+
+  const transacoes = await Transaction.find({ userId, isInvoiceItem: { $ne: true } });
+  const invoices = await Transaction.find({ userId, isInvoiceItem: true });
+  
+  const faturas = invoices.reduce((acc, curr) => {
+    const doc = curr.toObject();
+    if (!acc[doc.mesFatura]) acc[doc.mesFatura] = [];
+    acc[doc.mesFatura].push(doc);
+    return acc;
+  }, {});
+
+  const recorrentes = await RecurrentTransaction.find({ userId });
+  const ganhosMensais = recorrentes.filter(r => r.tipo === 'ganho');
+  const gastosMensais = recorrentes.filter(r => r.tipo === 'gasto');
+
+  res.status(200).json({ 
+    success: true, 
+    data: {
+      saldo: user.financeiro?.saldo || 0,
+      transacoes: transacoes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+      estado: {
+        faturas,
+        ganhosMensais,
+        gastosMensais
+      },
+      configuracoes: user.financeiro || {}
     }
-
-    const newUser = await User.create({ nome, email, senha, financeiro: { saldo: 0, diaVencimentoCartao: null, limiteCartao: 0, plano: 'gratuito' } });
-    res.status(201).json({ success: true, data: newUser });
-  } catch (error) {
-    next(error);
-  }
+  });
 };
 
-exports.login = async (req, res, next) => {
-  try {
-    const { email, senha } = req.body;
-    const user = await User.findOne({ email });
-    
-    if (!user || user.senha !== senha) {
-      return res.status(401).json({ success: false, message: 'Credenciais inválidas.' });
-    }
+exports.updateProfile = async (req, res) => {
+  const userId = req.user;
 
-    // Retorna um token dummy e os dados
-    res.status(200).json({ 
-      success: true, 
-      token: `dummy-token-${user.id}`, 
-      data: user 
-    });
-  } catch (error) {
-    next(error);
-  }
+  const { nome, celular, avatar } = req.body;
+  
+  const updated = await User.findByIdAndUpdate(userId, { nome, celular, avatar }, { new: true, runValidators: true });
+  res.status(200).json({ success: true, data: updated });
 };
 
-exports.getProfile = async (req, res, next) => {
-  try {
-    const userId = req.userId || req.headers['x-user-id'];
-    if (!userId) return res.status(401).json({ success: false, message: 'Não autorizado.' });
+exports.updateFinance = async (req, res) => {
+  const userId = req.user;
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+  const user = await User.findById(userId);
+  if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
 
-    res.status(200).json({ success: true, data: user });
-  } catch (error) {
-    next(error);
-  }
-};
+  const financeiroAtualizado = { ...user.financeiro.toObject(), ...req.body };
+  const updated = await User.findByIdAndUpdate(userId, { financeiro: financeiroAtualizado }, { new: true, runValidators: true });
 
-exports.getFullState = async (req, res, next) => {
-  try {
-    const userId = req.userId || req.headers['x-user-id'];
-    if (!userId) return res.status(401).json({ success: false, message: 'Não autorizado.' });
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
-
-    const Transaction = require('../models/transactionModel');
-    const RecurrentTransaction = require('../models/recurrentModel');
-
-    const transacoes = await Transaction.find({ userId, isInvoiceItem: undefined });
-    const invoices = await Transaction.find({ userId, isInvoiceItem: true });
-    
-    const faturas = invoices.reduce((acc, curr) => {
-      if (!acc[curr.mesFatura]) acc[curr.mesFatura] = [];
-      acc[curr.mesFatura].push(curr);
-      return acc;
-    }, {});
-
-    const recorrentes = await RecurrentTransaction.find({ userId });
-    const ganhosMensais = recorrentes.filter(r => r.tipo === 'ganho');
-    const gastosMensais = recorrentes.filter(r => r.tipo === 'gasto');
-
-    res.status(200).json({ 
-      success: true, 
-      data: {
-        saldo: user.financeiro?.saldo || 0,
-        transacoes: transacoes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-        estado: {
-          faturas,
-          ganhosMensais,
-          gastosMensais
-        },
-        configuracoes: user.financeiro || {}
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.updateProfile = async (req, res, next) => {
-  try {
-    const userId = req.userId || req.headers['x-user-id'];
-    if (!userId) return res.status(401).json({ success: false, message: 'Não autorizado.' });
-
-    const { nome, celular, avatar } = req.body;
-    
-    const updated = await User.findByIdAndUpdate(userId, { nome, celular, avatar });
-    res.status(200).json({ success: true, data: updated });
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.updateFinance = async (req, res, next) => {
-  try {
-    const userId = req.userId || req.headers['x-user-id'];
-    if (!userId) return res.status(401).json({ success: false, message: 'Não autorizado.' });
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
-
-    const financeiroAtualizado = { ...user.financeiro, ...req.body };
-    const updated = await User.findByIdAndUpdate(userId, { financeiro: financeiroAtualizado });
-
-    res.status(200).json({ success: true, data: updated });
-  } catch (error) {
-    next(error);
-  }
+  res.status(200).json({ success: true, data: updated });
 };

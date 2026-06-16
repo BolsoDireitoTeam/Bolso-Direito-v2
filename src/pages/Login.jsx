@@ -1,24 +1,76 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchema } from "../validation/schemas";
+import { useAppDispatch } from "../store/hooks";
+import { login as loginAction } from "../store/slices/userSlice";
+import { mostrarToastTemporario } from "../store/slices/uiSlice";
+import { api } from "../services/api";
 
 export default function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const [searchParams] = useSearchParams();
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(loginSchema),
     defaultValues: { username: "", password: "" },
   });
 
-  const onSubmit = (data) => {
+  // ── Captura token do callback Google OAuth ──
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const nome = searchParams.get("nome");
+    const email = searchParams.get("email");
+    const error = searchParams.get("error");
+
+    if (error) {
+      dispatch(mostrarToastTemporario("Falha no login com Google. Tente novamente.", "error"));
+      return;
+    }
+
+    if (token) {
+      localStorage.setItem("token", token);
+      const userData = { nome: nome || "Usuário", email: email || "" };
+      dispatch(loginAction(userData));
+      if (typeof onLogin === "function") onLogin(userData);
+      dispatch(mostrarToastTemporario("Login com Google realizado!", "success"));
+      navigate("/", { replace: true });
+    }
+  }, [searchParams, dispatch, navigate, onLogin]);
+
+  const onSubmit = async (data) => {
     setLoading(true);
-    setTimeout(() => {
+    setApiError("");
+
+    try {
+      const response = await api.post("/users/login", {
+        email: data.username,
+        senha: data.password,
+      });
+
+      // Salva o token no localStorage
+      localStorage.setItem("token", response.token);
+
+      // Dispatch para o Redux
+      const userData = response.data;
+      dispatch(loginAction(userData));
+      if (typeof onLogin === "function") onLogin(userData);
+
+      dispatch(mostrarToastTemporario("Login realizado com sucesso!", "success"));
+    } catch (error) {
+      setApiError(error.message || "Credenciais inválidas.");
+      dispatch(mostrarToastTemporario(error.message || "Erro ao fazer login.", "error"));
+    } finally {
       setLoading(false);
-      if (typeof onLogin === "function") onLogin({ username: data.username });
-    }, 800);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/auth/google";
   };
 
   return (
@@ -34,9 +86,9 @@ export default function Login({ onLogin }) {
             <p className="login-subtitle">Controle financeiro pessoal</p>
           </div>
 
-          {(errors.username || errors.password) && (
+          {(errors.username || errors.password || apiError) && (
             <div className="login-error">
-              {errors.username?.message || errors.password?.message}
+              {apiError || errors.username?.message || errors.password?.message}
             </div>
           )}
 
@@ -85,7 +137,7 @@ export default function Login({ onLogin }) {
               </svg>
               Criar conta
             </button>
-            <button className="btn-secondary">
+            <button className="btn-secondary" onClick={handleGoogleLogin}>
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M21.35 11.1H12v2.98h5.35c-.53 2.45-2.68 4.07-5.35 4.07a6.15 6.15 0 110-12.3c1.56 0 2.97.59 4.04 1.54l2.13-2.13A10.15 10.15 0 0012 2.9C6.97 2.9 2.9 6.97 2.9 12S6.97 21.1 12 21.1c5.3 0 9.1-3.72 9.1-9a9.7 9.7 0 00-.75-3z"/>
               </svg>

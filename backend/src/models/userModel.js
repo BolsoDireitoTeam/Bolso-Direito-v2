@@ -1,44 +1,56 @@
-const users = [
-  {
-    id: 'demo-user-123',
-    nome: 'Usuário Demo',
-    email: 'demo@bolsodireito.com.br',
-    senha: '123',
-    financeiro: { saldo: 0, diaVencimentoCartao: null, limiteCartao: 0, plano: 'gratuito' },
-    createdAt: new Date(),
-  }
-]; // Simula a collection do MongoDB
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-const User = {
-  find: async () => users,
-  findById: async (id) => users.find(u => u.id === id) || null,
-  findOne: async (query) => {
-    // Simples simulação do findOne do mongoose (ex: por username ou email)
-    return users.find(u => {
-      let match = true;
-      for (const key in query) {
-        if (u[key] !== query[key]) match = false;
-      }
-      return match;
-    }) || null;
+const userSchema = new mongoose.Schema({
+  nome: {
+    type: String,
+    required: [true, 'O nome é obrigatório.'],
+    trim: true,
   },
-  create: async (data) => {
-    const newUser = {
-      id: `usr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      ...data,
-      financeiro: data.financeiro || null,
-      createdAt: new Date(),
-    };
-    users.push(newUser);
-    return newUser;
+  email: {
+    type: String,
+    required: [true, 'O email é obrigatório.'],
+    unique: true,
+    lowercase: true,
+    trim: true,
   },
-  findByIdAndUpdate: async (id, updateData, options = {}) => {
-    const idx = users.findIndex(u => u.id === id);
-    if (idx === -1) return null;
+  senha: {
+    type: String,
+    required: [true, 'A senha é obrigatória.'],
+    minlength: [6, 'A senha deve ter no mínimo 6 caracteres.'],
+    select: false, // Nunca retornado por padrão nas queries
+  },
+  celular: {
+    type: String,
+    default: null,
+  },
+  avatar: {
+    type: String,
+    default: null,
+  },
+  financeiro: {
+    saldo: { type: Number, default: 0 },
+    diaVencimentoCartao: { type: Number, default: null },
+    limiteCartao: { type: Number, default: 0 },
+    plano: { type: String, default: 'gratuito', enum: ['gratuito', 'premium'] },
+  },
+}, {
+  timestamps: true,
+});
 
-    users[idx] = { ...users[idx], ...updateData, updatedAt: new Date() };
-    return users[idx];
-  }
+// Hook: Faz hash da senha antes de salvar (somente se foi modificada)
+userSchema.pre('save', async function () {
+  if (!this.isModified('senha')) return;
+
+  const salt = await bcrypt.genSalt(10);
+  this.senha = await bcrypt.hash(this.senha, salt);
+});
+
+// Método de instância: compara senha candidata com o hash salvo
+userSchema.methods.matchPassword = async function (senhaCandidata) {
+  return await bcrypt.compare(senhaCandidata, this.senha);
 };
+
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

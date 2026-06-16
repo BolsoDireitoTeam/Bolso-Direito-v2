@@ -3,12 +3,10 @@ const RecurrentTransaction = require('../models/recurrentModel');
 const Goal = require('../models/goalModel');
 const User = require('../models/userModel');
 
-exports.virarMes = async (req, res, next) => {
+exports.virarMes = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const { mesAlvo, dataRef } = req.body;
-    
-    if (!userId) return res.status(401).json({ success: false, message: 'Não autorizado.' });
     
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
@@ -48,7 +46,7 @@ exports.virarMes = async (req, res, next) => {
       });
       // Deletar as parcelas que já viraram transação consolidada
       for (const f of faturas) {
-        await Transaction.findByIdAndDelete(f.id);
+        await Transaction.findByIdAndDelete(f._id);
       }
     }
 
@@ -62,15 +60,15 @@ exports.virarMes = async (req, res, next) => {
       if (valorAporte <= 0) continue;
       saldoAtual -= valorAporte;
       totalMetas += valorAporte;
-      await Transaction.create({ userId, tipo: 'gasto', subtipo: 'debito', origem: 'meta', nome: `Aporte: ${m.nome}`, data, valor: valorAporte, categoria: 'Poupança', metaId: m.id, mesVirada });
+      await Transaction.create({ userId, tipo: 'gasto', subtipo: 'debito', origem: 'meta', nome: `Aporte: ${m.nome}`, data, valor: valorAporte, categoria: 'Poupança', metaId: m._id.toString(), mesVirada });
       
       const novoValor = Number((m.valorAtual + valorAporte).toFixed(2));
-      const novoAporte = { id: `ap-${Date.now()}`, valor: valorAporte, data, tipo: 'autopilot' };
-      await Goal.findByIdAndUpdate(m.id, { valorAtual: novoValor, aportes: [...m.aportes, novoAporte] });
+      const novoAporte = { valor: valorAporte, data, tipo: 'autopilot' };
+      await Goal.findByIdAndUpdate(m._id, { valorAtual: novoValor, $push: { aportes: novoAporte } });
     }
 
     // 5. Commit
-    await User.findByIdAndUpdate(userId, { financeiro: { ...user.financeiro, saldo: saldoAtual } });
+    await User.findByIdAndUpdate(userId, { 'financeiro.saldo': saldoAtual });
 
     res.status(200).json({
       success: true,
@@ -86,6 +84,6 @@ exports.virarMes = async (req, res, next) => {
     });
 
   } catch (error) {
-    next(error);
+    throw error;
   }
 };

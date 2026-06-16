@@ -60,14 +60,16 @@ function App() {
   // ── Auto-virada de mês (hook adaptado) ──
   const { executarAutoVirada } = useAutoViradaMes()
 
-  // ── Inicializar stores ──
+  // ── Inicializar stores (somente se logado) ──
   const financeInitialized = useAppSelector((state) => state.finance.initialized)
 
   useEffect(() => {
-    dispatch(initFinance())
-    dispatch(initMetas())
-    dispatch(initInvestimentos())
-  }, [dispatch])
+    if (isLoggedIn) {
+      dispatch(initFinance())
+      dispatch(initMetas())
+      dispatch(initInvestimentos())
+    }
+  }, [dispatch, isLoggedIn])
 
   // ── Auto-virada ──
   useEffect(() => {

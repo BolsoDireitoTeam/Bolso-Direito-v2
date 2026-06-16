@@ -25,10 +25,14 @@ function carregarFinanceiro() {
   }
 }
 
+function isAuthenticated() {
+  return !!localStorage.getItem('token')
+}
+
 const initialState = {
   usuario: carregarUsuario(),
   financeiro: carregarFinanceiro(),
-  isLoggedIn: localStorage.getItem('bd_logado') === 'true',
+  isLoggedIn: isAuthenticated(),
 }
 
 const userSlice = createSlice({
@@ -45,13 +49,25 @@ const userSlice = createSlice({
     },
     login(state, action) {
       state.isLoggedIn = true
-      state.usuario = { ...state.usuario, nome: action.payload.username }
+      const { nome, email, _id, avatar } = action.payload
+      state.usuario = {
+        ...state.usuario,
+        nome: nome || state.usuario.nome,
+        email: email || state.usuario.email,
+        _id: _id || state.usuario._id,
+        avatar: avatar || state.usuario.avatar,
+      }
       localStorage.setItem('bd_logado', 'true')
       localStorage.setItem('bd_usuario', JSON.stringify(state.usuario))
     },
     logout(state) {
       state.isLoggedIn = false
+      state.usuario = { nome: 'Usuário', email: '', celular: '', avatar: null }
+      state.financeiro = null
       localStorage.removeItem('bd_logado')
+      localStorage.removeItem('bd_usuario')
+      localStorage.removeItem('bd_financeiro')
+      localStorage.removeItem('token')
     },
   },
 })

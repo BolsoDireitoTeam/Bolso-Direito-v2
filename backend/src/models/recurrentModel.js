@@ -1,31 +1,34 @@
-const recurrentTransactions = [];
+const mongoose = require('mongoose');
 
-const RecurrentTransaction = {
-  find: async (query = {}) => {
-    return recurrentTransactions.filter(r => {
-      let match = true;
-      for (const key in query) {
-        if (r[key] !== query[key]) match = false;
-      }
-      return match;
-    });
+const recurrentSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true,
   },
-  findById: async (id) => recurrentTransactions.find(r => r.id === id) || null,
-  create: async (data) => {
-    const newRecurrent = {
-      id: `rec-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      ...data,
-      createdAt: new Date(),
-    };
-    recurrentTransactions.push(newRecurrent);
-    return newRecurrent;
+  tipo: {
+    type: String,
+    required: [true, 'O tipo é obrigatório.'],
+    enum: ['ganho', 'gasto'],
   },
-  findByIdAndDelete: async (id) => {
-    const idx = recurrentTransactions.findIndex(r => r.id === id);
-    if (idx === -1) return null;
-    const [deleted] = recurrentTransactions.splice(idx, 1);
-    return deleted;
-  }
-};
+  nome: {
+    type: String,
+    required: [true, 'O nome é obrigatório.'],
+    trim: true,
+  },
+  valor: {
+    type: Number,
+    required: [true, 'O valor é obrigatório.'],
+  },
+  categoria: {
+    type: String,
+    default: null,
+  },
+}, {
+  timestamps: true,
+});
+
+const RecurrentTransaction = mongoose.model('RecurrentTransaction', recurrentSchema);
 
 module.exports = RecurrentTransaction;

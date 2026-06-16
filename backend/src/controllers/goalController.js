@@ -8,34 +8,34 @@ async function _atualizarSaldo(userId, delta) {
   if (!user) return;
   const saldoAtual = user.financeiro?.saldo || 0;
   await User.findByIdAndUpdate(userId, {
-    financeiro: { ...user.financeiro, saldo: Number((saldoAtual + delta).toFixed(2)) }
+    'financeiro.saldo': Number((saldoAtual + delta).toFixed(2))
   });
 }
 
-exports.getAll = async (req, res, next) => {
+exports.getAll = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const goals = await Goal.find({ userId });
     res.status(200).json({ success: true, data: goals });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.getById = async (req, res, next) => {
+exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
     const goal = await Goal.findById(id);
     if (!goal) return res.status(404).json({ success: false, message: 'Meta não encontrada.' });
     res.status(200).json({ success: true, data: goal });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.create = async (req, res, next) => {
+exports.create = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const { aporteInicial, ...resto } = req.body;
 
     const newGoal = await Goal.create({ ...resto, userId, valorAtual: 0, aportes: [] });
@@ -44,38 +44,37 @@ exports.create = async (req, res, next) => {
     if (aporteInicial && aporteInicial > 0) {
       await _atualizarSaldo(userId, -aporteInicial);
       const novoAporte = {
-        id: `ap-${Date.now()}`,
         valor: aporteInicial,
         data: new Date().toISOString().split('T')[0],
         tipo: 'aporte'
       };
-      await Goal.findByIdAndUpdate(newGoal.id, {
+      await Goal.findByIdAndUpdate(newGoal._id, {
         valorAtual: aporteInicial,
-        aportes: [novoAporte]
+        $push: { aportes: novoAporte }
       });
     }
 
-    const goalAtualizada = await Goal.findById(newGoal.id);
+    const goalAtualizada = await Goal.findById(newGoal._id);
     res.status(201).json({ success: true, data: goalAtualizada });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.update = async (req, res, next) => {
+exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await Goal.findByIdAndUpdate(id, req.body);
+    const updated = await Goal.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
     if (!updated) return res.status(404).json({ success: false, message: 'Não encontrado.' });
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.delete = async (req, res, next) => {
+exports.delete = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const { id } = req.params;
     const goal = await Goal.findById(id);
     if (!goal) return res.status(404).json({ success: false, message: 'Não encontrado.' });
@@ -88,13 +87,13 @@ exports.delete = async (req, res, next) => {
     await Goal.findByIdAndDelete(id);
     res.status(200).json({ success: true, message: 'Meta excluída e saldo resgatado.' });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.contribute = async (req, res, next) => {
+exports.contribute = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const { id } = req.params;
     const { valor, tipo } = req.body;
 
@@ -106,24 +105,26 @@ exports.contribute = async (req, res, next) => {
 
     const novoValor = Number((goal.valorAtual + valor).toFixed(2));
     const novoAporte = {
-      id: `ap-${Date.now()}`,
       valor,
       data: new Date().toISOString().split('T')[0],
       tipo: tipo || 'aporte'
     };
 
-    const aportesAtualizados = [...goal.aportes, novoAporte];
-    const updated = await Goal.findByIdAndUpdate(id, { valorAtual: novoValor, aportes: aportesAtualizados });
+    const updated = await Goal.findByIdAndUpdate(
+      id,
+      { valorAtual: novoValor, $push: { aportes: novoAporte } },
+      { new: true }
+    );
 
     res.status(201).json({ success: true, data: updated });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };
 
-exports.redeem = async (req, res, next) => {
+exports.redeem = async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'];
+    const userId = req.user;
     const { id } = req.params;
     const { valor } = req.body;
 
@@ -139,17 +140,19 @@ exports.redeem = async (req, res, next) => {
 
     const novoValor = Number((goal.valorAtual - valor).toFixed(2));
     const novoAporte = {
-      id: `ap-${Date.now()}`,
       valor,
       data: new Date().toISOString().split('T')[0],
       tipo: 'resgate'
     };
 
-    const aportesAtualizados = [...goal.aportes, novoAporte];
-    const updated = await Goal.findByIdAndUpdate(id, { valorAtual: novoValor, aportes: aportesAtualizados });
+    const updated = await Goal.findByIdAndUpdate(
+      id,
+      { valorAtual: novoValor, $push: { aportes: novoAporte } },
+      { new: true }
+    );
 
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
-    next(error);
+    throw error;
   }
 };

@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { registerSchema } from "../validation/schemas";
+import { useAppDispatch } from "../store/hooks";
+import { login as loginAction } from "../store/slices/userSlice";
+import { mostrarToastTemporario } from "../store/slices/uiSlice";
+import { api } from "../services/api";
 
 function getPasswordStrength(password) {
   if (password.length === 0) return 0;
@@ -21,7 +25,9 @@ const strengthClass = ["", "active-weak", "active-medium", "active-strong"];
 
 export default function Register({ onLogin }) {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     resolver: yupResolver(registerSchema),
@@ -31,13 +37,33 @@ export default function Register({ onLogin }) {
   const passwordValue = watch("password", "");
   const strength = getPasswordStrength(passwordValue);
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      if (typeof onLogin === "function") onLogin({ username: data.name });
+    setApiError("");
+
+    try {
+      const response = await api.post("/users/register", {
+        nome: data.name,
+        email: data.email,
+        senha: data.password,
+      });
+
+      // Salva o token no localStorage
+      localStorage.setItem("token", response.token);
+
+      // Dispatch para o Redux
+      const userData = response.data;
+      dispatch(loginAction(userData));
+      if (typeof onLogin === "function") onLogin(userData);
+
+      dispatch(mostrarToastTemporario("Conta criada com sucesso! Bem-vindo ao Bolso Direito!", "success"));
       navigate("/");
-    }, 900);
+    } catch (error) {
+      setApiError(error.message || "Erro ao criar conta.");
+      dispatch(mostrarToastTemporario(error.message || "Erro ao criar conta.", "error"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,6 +78,10 @@ export default function Register({ onLogin }) {
             <h1 className="login-title">Bolso Direito</h1>
             <p className="login-subtitle">Crie sua conta grátis</p>
           </div>
+
+          {apiError && (
+            <div className="login-error">{apiError}</div>
+          )}
 
           <div className="login-field">
             <label className="login-label" htmlFor="reg-name">Nome</label>

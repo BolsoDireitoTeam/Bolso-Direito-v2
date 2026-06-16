@@ -1,12 +1,13 @@
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-import { useAppSelector } from '../../store/hooks'
-import { selectUsuario } from '../../store/slices/userSlice'
+import { useAppSelector, useAppDispatch } from '../../store/hooks'
+import { selectUsuario, logout } from '../../store/slices/userSlice'
 import { sidebarNavItems } from '../../data/constants'
 import MonthYearPicker from '../ui/MonthYearPicker'
 
 function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const usuario = useAppSelector(selectUsuario)
 
   const defaultNome = usuario?.nome || 'Usuário'
@@ -17,6 +18,11 @@ function Sidebar() {
   const displayHandle = rawEmail.includes('@')
     ? rawEmail.split('@')[0]
     : rawEmail || defaultNome.replace(/\s+/g, '').toLowerCase()
+
+  const handleLogout = () => {
+    dispatch(logout())
+    navigate('/login')
+  }
 
   return (
     <aside className="sidebar">
@@ -84,6 +90,40 @@ function Sidebar() {
           }}>{displayHandle}</small>
         </div>
       </div>
+
+      {/* ── Logout ── */}
+      <button
+        onClick={handleLogout}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          width: '100%',
+          padding: '0.7rem 0.8rem',
+          marginTop: '0.5rem',
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: '10px',
+          color: 'var(--bd-muted)',
+          fontSize: '0.78rem',
+          fontWeight: 500,
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = 'rgba(255,80,80,0.08)'
+          e.currentTarget.style.color = '#ff6b6b'
+          e.currentTarget.style.borderColor = 'rgba(255,80,80,0.15)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+          e.currentTarget.style.color = 'var(--bd-muted)'
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+        }}
+      >
+        <i className="bi bi-box-arrow-left" style={{ fontSize: '0.9rem' }}></i>
+        Sair
+      </button>
     </aside>
   )
 }

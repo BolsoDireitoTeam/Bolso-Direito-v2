@@ -112,30 +112,7 @@ export const virarMes = createAsyncThunk(
   }
 )
 
-export const importarTransacoes = createAsyncThunk(
-  'finance/importarTransacoes',
-  async (lista) => {
-    for (const tx of lista) {
-      try {
-        if (tx.tipo === 'ganho') {
-          await BolsoDB.adicionarGanho({ nome: tx.nome, valor: tx.valor, data: tx.data })
-        } else {
-          await BolsoDB.adicionarGasto({
-            nome: tx.nome,
-            valor: tx.valor,
-            categoria: tx.categoria || 'Outros',
-            subtipo: tx.subtipo || 'debito',
-            parcelas: tx.parcelas || 1,
-            data: tx.data,
-          })
-        }
-      } catch (err) {
-        console.warn('[Importar] Item ignorado:', tx, err.message)
-      }
-    }
-    return await BolsoDB.getFullState()
-  }
-)
+
 
 export const resetarDados = createAsyncThunk(
   'finance/resetarDados',

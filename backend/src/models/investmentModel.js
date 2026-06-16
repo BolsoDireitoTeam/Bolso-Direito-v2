@@ -1,38 +1,46 @@
-const investments = [];
+const mongoose = require('mongoose');
 
-const Investment = {
-  find: async (query = {}) => {
-    return investments.filter(i => {
-      let match = true;
-      for (const key in query) {
-        if (i[key] !== query[key]) match = false;
-      }
-      return match;
-    });
+const aporteSchema = new mongoose.Schema({
+  valor: { type: Number, required: true },
+  data: { type: String, required: true },
+}, { _id: true });
+
+const investmentSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true,
   },
-  findById: async (id) => investments.find(i => i.id === id) || null,
-  create: async (data) => {
-    const newInv = {
-      id: `inv-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      ...data,
-      aportes: data.aportes || [],
-      createdAt: new Date(),
-    };
-    investments.push(newInv);
-    return newInv;
+  nome: {
+    type: String,
+    required: [true, 'O nome do investimento é obrigatório.'],
+    trim: true,
   },
-  findByIdAndUpdate: async (id, updateData) => {
-    const idx = investments.findIndex(i => i.id === id);
-    if (idx === -1) return null;
-    investments[idx] = { ...investments[idx], ...updateData, updatedAt: new Date() };
-    return investments[idx];
+  tipo: {
+    type: String,
+    default: null, // 'CDB', 'Tesouro', 'Ações', etc.
   },
-  findByIdAndDelete: async (id) => {
-    const idx = investments.findIndex(i => i.id === id);
-    if (idx === -1) return null;
-    const [deleted] = investments.splice(idx, 1);
-    return deleted;
-  }
-};
+  valorInicial: {
+    type: Number,
+    required: [true, 'O valor inicial é obrigatório.'],
+  },
+  taxaMensal: {
+    type: Number,
+    default: 0,
+  },
+  dataInicio: {
+    type: String,
+    required: [true, 'A data de início é obrigatória.'],
+  },
+  aportes: {
+    type: [aporteSchema],
+    default: [],
+  },
+}, {
+  timestamps: true,
+});
+
+const Investment = mongoose.model('Investment', investmentSchema);
 
 module.exports = Investment;
