@@ -15,7 +15,7 @@ function CarteiraInvestimentos({ onAddClick }) {
   const investimentos = useAppSelector(selectInvestimentos)
   const invStatus = useAppSelector(selectInvestimentosStatus)
   const invError = useAppSelector(selectInvestimentosError)
-  const isPremium = configuracoes.plano === 'pago'
+  const isPremium = configuracoes.plano === 'premium'
 
   return (
     <div style={{ position: 'relative', minHeight: '60vh' }}>

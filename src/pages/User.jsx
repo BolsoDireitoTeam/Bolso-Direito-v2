@@ -16,10 +16,10 @@ export default function User() {
   const avatar = usuario?.avatar ??
     `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=4ee3c4&color=0d1525&size=200&bold=true`;
 
-  const isPremium = configuracoes.plano === 'pago';
+  const isPremium = configuracoes.plano === 'premium';
 
   const togglePlano = () => {
-    const novoPlano = isPremium ? 'gratuito' : 'pago';
+    const novoPlano = isPremium ? 'gratuito' : 'premium';
     dispatch(salvarConfiguracoes({ plano: novoPlano }));
     dispatch(mostrarToastTemporario(isPremium ? 'Plano alterado para Gratuito.' : 'Upgrade para PRO realizado! 🌟'));
   };

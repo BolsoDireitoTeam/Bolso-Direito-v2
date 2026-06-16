@@ -25,7 +25,8 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
-    const goal = await Goal.findById(id);
+    const userId = req.user;
+    const goal = await Goal.findOne({ _id: id, userId });
     if (!goal) return res.status(404).json({ success: false, message: 'Meta não encontrada.' });
     res.status(200).json({ success: true, data: goal });
   } catch (error) {
@@ -64,7 +65,8 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await Goal.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    const userId = req.user;
+    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, req.body, { new: true, runValidators: true });
     if (!updated) return res.status(404).json({ success: false, message: 'Não encontrado.' });
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
@@ -76,7 +78,7 @@ exports.delete = async (req, res) => {
   try {
     const userId = req.user;
     const { id } = req.params;
-    const goal = await Goal.findById(id);
+    const goal = await Goal.findOne({ _id: id, userId });
     if (!goal) return res.status(404).json({ success: false, message: 'Não encontrado.' });
 
     // Se a meta tinha saldo acumulado, resgata de volta ao saldo do usuário
@@ -84,7 +86,7 @@ exports.delete = async (req, res) => {
       await _atualizarSaldo(userId, +goal.valorAtual);
     }
 
-    await Goal.findByIdAndDelete(id);
+    await Goal.findOneAndDelete({ _id: id, userId });
     res.status(200).json({ success: true, message: 'Meta excluída e saldo resgatado.' });
   } catch (error) {
     throw error;
@@ -97,7 +99,7 @@ exports.contribute = async (req, res) => {
     const { id } = req.params;
     const { valor, tipo } = req.body;
 
-    const goal = await Goal.findById(id);
+    const goal = await Goal.findOne({ _id: id, userId });
     if (!goal) return res.status(404).json({ success: false, message: 'Não encontrado.' });
 
     // Debita do saldo do usuário
@@ -110,11 +112,7 @@ exports.contribute = async (req, res) => {
       tipo: tipo || 'aporte'
     };
 
-    const updated = await Goal.findByIdAndUpdate(
-      id,
-      { valorAtual: novoValor, $push: { aportes: novoAporte } },
-      { new: true }
-    );
+    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, { valorAtual: novoValor, $push: { aportes: novoAporte } }, { new: true });
 
     res.status(201).json({ success: true, data: updated });
   } catch (error) {
@@ -128,7 +126,7 @@ exports.redeem = async (req, res) => {
     const { id } = req.params;
     const { valor } = req.body;
 
-    const goal = await Goal.findById(id);
+    const goal = await Goal.findOne({ _id: id, userId });
     if (!goal) return res.status(404).json({ success: false, message: 'Não encontrado.' });
 
     if (valor > goal.valorAtual) {
@@ -145,11 +143,7 @@ exports.redeem = async (req, res) => {
       tipo: 'resgate'
     };
 
-    const updated = await Goal.findByIdAndUpdate(
-      id,
-      { valorAtual: novoValor, $push: { aportes: novoAporte } },
-      { new: true }
-    );
+    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, { valorAtual: novoValor, $push: { aportes: novoAporte } }, { new: true });
 
     res.status(200).json({ success: true, data: updated });
   } catch (error) {

@@ -18,7 +18,7 @@ function Metas() {
   const configuracoes = useAppSelector(selectConfiguracoes)
   const metasStatus = useAppSelector(selectMetasStatus)
   const metasError = useAppSelector(selectMetasError)
-  const isPremium = configuracoes.plano === 'pago'
+  const isPremium = configuracoes.plano === 'premium'
 
   const totalAlocado = metas.reduce((s, m) => s + m.valorAtual, 0)
   const metasAtivas = metas.filter(m => m.valorAtual < m.valorAlvo).length

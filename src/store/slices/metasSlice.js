@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
-import { MetaDB } from '../../services/MetaDB'
-import { BolsoDB } from '../../services/BolsoDB'
+import { api } from '../../services/api'
+
 import { mostrarToastTemporario } from './uiSlice'
 
 // ─────────────────────────────────────────────────────────────
@@ -16,12 +16,14 @@ export const metasAdapter = createEntityAdapter({
 // ─────────────────────────────────────────────────────────────
 
 async function _snapshotMetas() {
-  const metas = await MetaDB.listar()
-  return { metas }
+  const res = await api.get('/goals');
+  const metas = res.data.data ? res.data.data.map(item => ({ ...item, id: item._id })) : res.data.map(item => ({ ...item, id: item._id }));
+  return { metas };
 }
 
 async function _snapshotFinance() {
-  return BolsoDB.getFullState()
+  const res = await api.get('/users/full-state');
+  return res.data.data || res.data;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -31,7 +33,7 @@ async function _snapshotFinance() {
 export const initMetas = createAsyncThunk(
   'metas/init',
   async () => {
-    await MetaDB.init()
+    // init removido, não é mais mock local
     return _snapshotMetas()
   }
 )
@@ -40,7 +42,7 @@ export const adicionarMeta = createAsyncThunk(
   'metas/adicionar',
   async (params, { dispatch }) => {
     // O backend cria a meta e faz o aporte inicial descontando do saldo, se houver
-    await MetaDB.adicionar(params)
+    await api.post('/goals', params)
     dispatch(mostrarToastTemporario('Meta criada com sucesso! 🎯', 'success'))
     const [metasSnapshot, financeSnapshot] = await Promise.all([
       _snapshotMetas(),
@@ -54,7 +56,7 @@ export const removerMeta = createAsyncThunk(
   'metas/remover',
   async (id, { dispatch }) => {
     // O backend resgata o saldo restante automaticamente ao remover a meta
-    await MetaDB.remover(id)
+    await api.delete(`/goals/${id}`)
     dispatch(mostrarToastTemporario('Meta excluída.', 'success'))
     const [metasSnapshot, financeSnapshot] = await Promise.all([
       _snapshotMetas(),
@@ -69,7 +71,7 @@ export const contribuirMetaSaldo = createAsyncThunk(
   async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
       // O backend debita o valor do saldo e adiciona ao valorAtual da meta
-      await MetaDB.contribuir(id, valor, 'aporte')
+      await api.post(`/goals/${id}/contribute`, { amount: valor })
       dispatch(mostrarToastTemporario('Aporte realizado com sucesso!', 'success'))
       const [metasSnapshot, financeSnapshot] = await Promise.all([
         _snapshotMetas(),
@@ -89,7 +91,7 @@ export const resgatarMetaSaldo = createAsyncThunk(
   async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
       // O backend valida o saldo disponível na meta e credita de volta ao saldo do usuário
-      await MetaDB.resgatar(id, valor)
+      await api.post(`/goals/${id}/withdraw`, { amount: valor })
       dispatch(mostrarToastTemporario('Resgate realizado com sucesso!', 'success'))
       const [metasSnapshot, financeSnapshot] = await Promise.all([
         _snapshotMetas(),
@@ -107,7 +109,7 @@ export const resgatarMetaSaldo = createAsyncThunk(
 export const editarMeta = createAsyncThunk(
   'metas/editar',
   async ({ id, patch }, { dispatch }) => {
-    await MetaDB.editar(id, patch)
+    await api.put(`/goals/${id}`, patch)
     dispatch(mostrarToastTemporario('Meta atualizada!', 'success'))
     return _snapshotMetas()
   }
@@ -116,7 +118,7 @@ export const editarMeta = createAsyncThunk(
 export const agendarMeta = createAsyncThunk(
   'metas/agendar',
   async ({ id, agendamento }, { dispatch }) => {
-    await MetaDB.editar(id, { agendamento })
+    await api.put(`/goals/${id}`, { agendamento })
     dispatch(mostrarToastTemporario('Agendamento salvo!', 'success'))
     return _snapshotMetas()
   }

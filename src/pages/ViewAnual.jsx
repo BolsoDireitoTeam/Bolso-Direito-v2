@@ -20,7 +20,7 @@ function ViewAnual() {
   const configuracoes = useAppSelector(selectConfiguracoes)
   const [ano, setAno] = useState(new Date().getFullYear())
 
-  const isPremium = configuracoes.plano === 'pago'
+  const isPremium = configuracoes.plano === 'premium'
 
   const dados = useMemo(() => {
     const receitas = Array(12).fill(0)

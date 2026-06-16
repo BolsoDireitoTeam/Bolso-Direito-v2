@@ -23,7 +23,9 @@ exports.create = async (req, res) => {
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
-    await RecurrentTransaction.findByIdAndDelete(id);
+    const userId = req.user;
+    const deleted = await RecurrentTransaction.findOneAndDelete({ _id: id, userId });
+    if (!deleted) return res.status(404).json({ success: false, message: 'Não encontrado.' });
     res.status(200).json({ success: true, message: 'Removido com sucesso.' });
   } catch (error) {
     throw error;

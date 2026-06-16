@@ -12,7 +12,7 @@ function PaywallOverlay({ titulo, descricao }) {
   const dispatch = useAppDispatch()
 
   const handleUpgrade = () => {
-    dispatch(salvarConfiguracoes({ plano: 'pago' }))
+    dispatch(salvarConfiguracoes({ plano: 'premium' }))
     dispatch(mostrarToastTemporario('Parabéns! Você agora é Premium! 🌟', 'success'))
   }
 

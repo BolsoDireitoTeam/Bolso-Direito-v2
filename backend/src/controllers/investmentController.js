@@ -67,7 +67,8 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
-    const inv = await Investment.findById(id);
+    const userId = req.user;
+    const inv = await Investment.findOne({ _id: id, userId });
     if (!inv) return res.status(404).json({ success: false, message: 'Investimento não encontrado.' });
     
     const invObj = inv.toObject();
@@ -91,7 +92,8 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await Investment.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    const userId = req.user;
+    const updated = await Investment.findOneAndUpdate({ _id: id, userId }, req.body, { new: true, runValidators: true });
     if (!updated) return res.status(404).json({ success: false, message: 'Não encontrado.' });
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
@@ -103,7 +105,7 @@ exports.delete = async (req, res) => {
   try {
     const userId = req.user;
     const { id } = req.params;
-    const inv = await Investment.findById(id);
+    const inv = await Investment.findOne({ _id: id, userId });
     if (!inv) return res.status(404).json({ success: false, message: 'Não encontrado.' });
 
     // Calcula o montante acumulado e credita de volta ao saldo do usuário
@@ -117,7 +119,7 @@ exports.delete = async (req, res) => {
       }
     }
 
-    await Investment.findByIdAndDelete(id);
+    await Investment.findOneAndDelete({ _id: id, userId });
     res.status(200).json({ success: true, message: 'Investimento resgatado com sucesso.', montanteResgatado: montante });
   } catch (error) {
     throw error;
@@ -131,7 +133,7 @@ exports.addAporte = async (req, res) => {
     const { valor, data } = req.body;
     const valorNum = parseFloat(valor) || 0;
     
-    const inv = await Investment.findById(id);
+    const inv = await Investment.findOne({ _id: id, userId });
     if (!inv) return res.status(404).json({ success: false, message: 'Não encontrado.' });
 
     // Debita o valor do saldo do usuário
@@ -144,7 +146,7 @@ exports.addAporte = async (req, res) => {
     }
 
     // Adiciona o aporte ao array usando $push do Mongoose
-    const updated = await Investment.findByIdAndUpdate(
+    const updated = await Investment.findOneAndUpdate({ _id: id, userId }, 
       id,
       { $push: { aportes: { valor: valorNum, data: data || new Date().toISOString().split('T')[0] } } },
       { new: true }

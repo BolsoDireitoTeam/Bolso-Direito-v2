@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
-import { InvestimentoDB } from '../../services/InvestimentoDB'
-import { BolsoDB } from '../../services/BolsoDB'
+import { api } from '../../services/api'
+
 import { mostrarToastTemporario } from './uiSlice'
 
 // ─────────────────────────────────────────────────────────────
@@ -16,10 +16,16 @@ export const investimentosAdapter = createEntityAdapter({
 // ─────────────────────────────────────────────────────────────
 
 async function _snapshotInvestimentos() {
-  const res = await InvestimentoDB.listar()
+  const res = await api.get('/investments');
+  const investimentos = res.data.data ? res.data.data.map(item => ({ ...item, id: item._id })) : res.data.map(item => ({ ...item, id: item._id }));
+  
+  const totalInvestido = investimentos.reduce((acc, curr) => acc + curr.valorInvestido, 0);
+  const montanteTotal = investimentos.reduce((acc, curr) => acc + curr.valorAtual, 0);
+  const rendimentoTotal = montanteTotal - totalInvestido;
+
   return {
-    investimentos: res.investimentos,
-    totais: res.totais,
+    investimentos,
+    totais: { totalInvestido, montanteTotal, rendimentoTotal },
   }
 }
 
@@ -30,7 +36,7 @@ async function _snapshotInvestimentos() {
 export const initInvestimentos = createAsyncThunk(
   'investimentos/init',
   async () => {
-    await InvestimentoDB.init()
+    // init removido
     return _snapshotInvestimentos()
   }
 )
@@ -38,7 +44,7 @@ export const initInvestimentos = createAsyncThunk(
 export const adicionarInvestimento = createAsyncThunk(
   'investimentos/adicionar',
   async (params, { dispatch }) => {
-    await InvestimentoDB.adicionar(params)
+    await api.post('/investments', params)
     dispatch(mostrarToastTemporario('Investimento adicionado!', 'success'))
     return _snapshotInvestimentos()
   }
@@ -48,12 +54,12 @@ export const removerInvestimento = createAsyncThunk(
   'investimentos/remover',
   async (id, { dispatch }) => {
     // O backend já calcula o montante e faz o resgate ao saldo automaticamente
-    await InvestimentoDB.remover(id)
+    await api.delete(`/investments/${id}`)
     dispatch(mostrarToastTemporario('Investimento resgatado e valor devolvido ao saldo.', 'success'))
     // Recarrega o estado financeiro junto
     const [invSnapshot, financeSnapshot] = await Promise.all([
       _snapshotInvestimentos(),
-      BolsoDB.getFullState(),
+      api.get("/users/full-state").then(r => r.data.data || r.data),
     ])
     return { ...invSnapshot, finance: financeSnapshot }
   }
@@ -62,7 +68,7 @@ export const removerInvestimento = createAsyncThunk(
 export const editarInvestimento = createAsyncThunk(
   'investimentos/editar',
   async ({ id, patch }, { dispatch }) => {
-    await InvestimentoDB.editar(id, patch)
+    await api.put(`/investments/${id}`, patch)
     dispatch(mostrarToastTemporario('Investimento atualizado!', 'success'))
     return _snapshotInvestimentos()
   }
@@ -73,11 +79,11 @@ export const aportarInvestimento = createAsyncThunk(
   async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
       // O backend já desconta o valor do saldo e registra o aporte no investimento
-      await InvestimentoDB.aportar(id, valor)
+      await api.post(`/investments/${id}/contribute`, { amount: valor })
       dispatch(mostrarToastTemporario('Aporte realizado com sucesso!', 'success'))
       const [invSnapshot, financeSnapshot] = await Promise.all([
         _snapshotInvestimentos(),
-        BolsoDB.getFullState(),
+        api.get("/users/full-state").then(r => r.data.data || r.data),
       ])
       return { ...invSnapshot, finance: financeSnapshot }
     } catch (err) {
@@ -170,4 +176,6 @@ export const selectInvestimentosError = (state) => state.investimentos.error
 
 // Re-exporta a função de cálculo do service para uso direto em componentes
 // (cálculo local de previsão — não requer chamada à API)
-export const calcularValorInvestimento = InvestimentoDB.calcularValorAcumulado
+export const calcularValorInvestimento = (montante, taxaMensal, meses) => {
+  return montante * Math.pow(1 + taxaMensal / 100, meses);
+};
