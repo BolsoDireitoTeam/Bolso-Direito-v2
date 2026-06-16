@@ -99,7 +99,7 @@ export const salvarConfiguracoes = createAsyncThunk('finance/salvarConfiguracoes
 // ─────────────────────────────────────────────────────────────
 
 export const transacoesAdapter = createEntityAdapter({
-  selectId: (tx) => tx._id || tx.id,
+  selectId: (tx) => tx.id ?? tx._id,
   sortComparer: (a, b) => new Date(b.data || b.createdAt) - new Date(a.data || a.createdAt),
 })
 
@@ -117,7 +117,14 @@ const initialState = transacoesAdapter.getInitialState({
 function applySnapshot(state, action) {
   const { saldo, transacoes, estado, configuracoes } = action.payload
   if (saldo !== undefined) state.saldo = saldo
-  if (transacoes) transacoesAdapter.setAll(state, transacoes)
+  if (transacoes) {
+    // Normaliza _id → id para que todo o front-end use tx.id de forma consistente
+    const normalized = transacoes.map(tx => ({
+      ...tx,
+      id: tx.id || tx._id,
+    }))
+    transacoesAdapter.setAll(state, normalized)
+  }
   if (estado) {
     state.faturas = estado.faturas ?? {}
     state.ganhosMensais = estado.ganhosMensais ?? []
@@ -193,8 +200,7 @@ export const selectFinanceInitialized = (state) => state.finance.initialized
 export const selectFinanceStatus = (state) => state.finance.status
 export const selectFinanceError = (state) => state.finance.error
 
-// Utilitários que eram do BolsoDB
-export const CATEGORIAS = ['Alimentação', 'Moradia', 'Transporte', 'Saúde', 'Educação', 'Lazer', 'Compras', 'Outros', 'Mercado', 'Roupas']
+// Utilitários
 export const TIPOS_GASTO = ['debito', 'credito', 'fixo_mensal']
 
 export const selectDespesasPorCategoria = createSelector(

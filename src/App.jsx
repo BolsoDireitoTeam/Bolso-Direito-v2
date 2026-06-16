@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 // ── Redux ──
 import { useAppDispatch, useAppSelector } from './store/hooks'
 import { initFinance } from './store/slices/financeSlice'
+import { fetchCategories } from './store/slices/categoriesSlice'
 import { initMetas } from './store/slices/metasSlice'
 import { initInvestimentos } from './store/slices/investimentosSlice'
 import { selectIsLoggedIn, login } from './store/slices/userSlice'
@@ -66,6 +67,7 @@ function App() {
   useEffect(() => {
     if (isLoggedIn) {
       dispatch(initFinance())
+      dispatch(fetchCategories())
       dispatch(initMetas())
       dispatch(initInvestimentos())
     }

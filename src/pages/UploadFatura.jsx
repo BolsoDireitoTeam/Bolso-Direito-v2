@@ -1,7 +1,9 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch } from '../store/hooks'
-import { CATEGORIAS, initFinance } from '../store/slices/financeSlice'
+import { initFinance } from '../store/slices/financeSlice'
+import { selectAllCategories } from '../store/slices/categoriesSlice'
+import { useAppSelector } from '../store/hooks'
 import { mostrarToastTemporario } from '../store/slices/uiSlice'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
@@ -13,7 +15,8 @@ import { api } from '../services/api'
 function UploadFatura() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const categorias = CATEGORIAS
+  const cats = useAppSelector(selectAllCategories)
+  const categorias = cats.map(c => c.nome)
   const mostrarToast = (msg, tipo) => dispatch(mostrarToastTemporario(msg, tipo))
   const inputRef = useRef()
   

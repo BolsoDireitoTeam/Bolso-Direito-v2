@@ -9,6 +9,7 @@ const swaggerSpec = require('./config/swagger');
 const { globalLimiter, authLimiter } = require('./config/rateLimiter');
 const { errorHandler } = require('./middlewares/errorMiddleware');
 const configurePassport = require('./config/passportConfig');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 const app = express();
 
@@ -78,6 +79,7 @@ app.use('/api/transactions', require('./routes/transactionRoutes'));
 app.use('/api/invoices', require('./routes/invoiceRoutes'));
 app.use('/api/investments', require('./routes/investmentRoutes'));
 app.use('/api/goals', require('./routes/goalRoutes'));
+app.use('/api/categories', categoryRoutes);
 app.use('/api/recurrent', require('./routes/recurrentRoutes'));
 app.use('/api/engine', require('./routes/engineRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));

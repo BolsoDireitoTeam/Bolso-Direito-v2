@@ -6,7 +6,8 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '../store/hooks'
-import { selectTransacoes, selectFinanceStatus, selectFinanceError, CATEGORIAS, removerGanho, removerGastoDebito, removerGastoCredito, editarTransacao } from '../store/slices/financeSlice'
+import { selectTransacoes, selectFinanceStatus, selectFinanceError, removerGanho, removerGastoDebito, removerGastoCredito, editarTransacao } from '../store/slices/financeSlice'
+import { selectAllCategories } from '../store/slices/categoriesSlice'
 import { selectMesAnoFiltro, mostrarToastTemporario } from '../store/slices/uiSlice'
 import { moeda, nomeMes, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
@@ -33,7 +34,8 @@ function ListaTransacoes() {
   const transacoes = useAppSelector(selectTransacoes)
   const financeStatus = useAppSelector(selectFinanceStatus)
   const financeError = useAppSelector(selectFinanceError)
-  const categorias = CATEGORIAS
+  const cats = useAppSelector(selectAllCategories)
+  const categorias = cats.map(c => c.nome)
   const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
   const mostrarToast = (msg, tipo) => dispatch(mostrarToastTemporario(msg, tipo))
 

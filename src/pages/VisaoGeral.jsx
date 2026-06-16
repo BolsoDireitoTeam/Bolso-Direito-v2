@@ -6,6 +6,7 @@ import { selectMetas } from '../store/slices/metasSlice'
 import { selectInvestimentosTotais } from '../store/slices/investimentosSlice'
 import { selectUsuario } from '../store/slices/userSlice'
 import { selectMesAnoFiltro, selectAlertaConfigurar } from '../store/slices/uiSlice'
+import { selectCategoryColorMap, selectAllCategories } from '../store/slices/categoriesSlice'
 import { moeda, nomeMes } from '../utils/format'
 
 import PageHeader from '../components/ui/PageHeader'
@@ -35,6 +36,8 @@ function VisaoGeral({ onAddClick }) {
   const metas = useAppSelector(selectMetas)
   const investimentosTotais = useAppSelector(selectInvestimentosTotais)
   const usuario = useAppSelector(selectUsuario)
+  const categoryColorMap = useAppSelector(selectCategoryColorMap)
+  const allCategories = useAppSelector(selectAllCategories)
 
   // Últimas 6 transações
   const ultimasTransacoes = transacoes.slice(0, 6)
@@ -120,7 +123,7 @@ function VisaoGeral({ onAddClick }) {
     return {
       labels: categories,
       data: values,
-      colors: ['#4ee3c4', '#ACB6E5', '#f06a6a', '#4ee3a0', '#f4c864', '#74ebd5', '#8a9bbf']
+      colors: categories.map(c => categoryColorMap[c] || '#8a9bbf')
     }
   }, [gastosPorCategoria])
 
@@ -164,15 +167,17 @@ function VisaoGeral({ onAddClick }) {
 
   // 4. Radar: Gastos por Categoria (% do total)
   const realRadarData = useMemo(() => {
-    const cats = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Educação']
-    const atual = cats.map(c => gastosPorCategoria[c] || 0)
+    const catNames = allCategories.length > 0
+      ? allCategories.map(c => c.nome).slice(0, 6)
+      : ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Educação']
+    const atual = catNames.map(c => gastosPorCategoria[c] || 0)
     const maxVal = Math.max(...atual, 1)
     return {
-      labels: cats,
+      labels: catNames,
       atual: atual.map(v => Math.round((v / maxVal) * 100)),
-      meta: cats.map(() => 100),
+      meta: catNames.map(() => 100),
     }
-  }, [gastosPorCategoria])
+  }, [gastosPorCategoria, allCategories])
 
   // 5. Grouped Bar: Receitas vs Despesas nos últimos 7 meses
   const realGroupedBar = useMemo(() => {

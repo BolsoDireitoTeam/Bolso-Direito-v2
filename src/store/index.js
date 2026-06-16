@@ -10,6 +10,7 @@ import userReducer from './slices/userSlice'
 import uiReducer from './slices/uiSlice'
 import metasReducer from './slices/metasSlice'
 import investimentosReducer from './slices/investimentosSlice'
+import categoriesReducer from './slices/categoriesSlice'
 import { initFinance } from './slices/financeSlice'
 
 // ─────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ export const store = configureStore({
     ui: uiReducer,
     metas: metasReducer,
     investimentos: investimentosReducer,
+    categories: categoriesReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
