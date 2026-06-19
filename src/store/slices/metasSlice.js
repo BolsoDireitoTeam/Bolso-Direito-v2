@@ -70,8 +70,7 @@ export const contribuirMetaSaldo = createAsyncThunk(
   'metas/contribuir',
   async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
-      // O backend debita o valor do saldo e adiciona ao valorAtual da meta
-      await api.post(`/goals/${id}/contribute`, { amount: valor })
+      await api.post(`/goals/${id}/contribute`, { valor })
       dispatch(mostrarToastTemporario('Aporte realizado com sucesso!', 'success'))
       const [metasSnapshot, financeSnapshot] = await Promise.all([
         _snapshotMetas(),
@@ -80,8 +79,8 @@ export const contribuirMetaSaldo = createAsyncThunk(
       return { ...metasSnapshot, finance: financeSnapshot }
     } catch (err) {
       console.error('[metasSlice] Erro no aporte:', err)
-      dispatch(mostrarToastTemporario(err.message, 'error'))
-      return rejectWithValue(err.message)
+      dispatch(mostrarToastTemporario(err.response?.data?.message || err.message, 'error'))
+      return rejectWithValue(err.response?.data?.message || err.message)
     }
   }
 )
@@ -90,8 +89,7 @@ export const resgatarMetaSaldo = createAsyncThunk(
   'metas/resgatar',
   async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
-      // O backend valida o saldo disponível na meta e credita de volta ao saldo do usuário
-      await api.post(`/goals/${id}/withdraw`, { amount: valor })
+      await api.post(`/goals/${id}/redeem`, { valor })
       dispatch(mostrarToastTemporario('Resgate realizado com sucesso!', 'success'))
       const [metasSnapshot, financeSnapshot] = await Promise.all([
         _snapshotMetas(),
@@ -100,8 +98,8 @@ export const resgatarMetaSaldo = createAsyncThunk(
       return { ...metasSnapshot, finance: financeSnapshot }
     } catch (err) {
       console.error('[metasSlice] Erro no resgate:', err)
-      dispatch(mostrarToastTemporario(err.message, 'error'))
-      return rejectWithValue(err.message)
+      dispatch(mostrarToastTemporario(err.response?.data?.message || err.message, 'error'))
+      return rejectWithValue(err.response?.data?.message || err.message)
     }
   }
 )

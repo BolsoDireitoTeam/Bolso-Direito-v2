@@ -83,6 +83,7 @@ router.post('/', protect, transactionController.create);
  *         description: Transação não encontrada
  */
 router.delete('/:id', protect, transactionController.delete);
+router.put('/:id', protect, transactionController.update);
 
 /**
  * @swagger
