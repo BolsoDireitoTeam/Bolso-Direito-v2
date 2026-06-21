@@ -84,15 +84,34 @@ function VisaoGeral({ onAddClick }) {
     },
   ], [receitasMes, despesasMes, totalFaturaMesAtual])
 
-  // BudgetCategories a partir dos gastos reais
+  // BudgetCategories a partir dos orçamentos e gastos reais cadastrados
   const budgetCategories = useMemo(() => {
-    return Object.entries(gastosPorCategoria).map(([name, spent]) => ({
-      name,
-      spent,
-      total: spent,  // sem meta definida ainda — 100%
-      color: spent > 500 ? 'var(--bd-red)' : 'var(--bd-teal)',
-    }))
-  }, [gastosPorCategoria])
+    if (allCategories.length === 0) return [];
+    return allCategories.map(cat => {
+      const spent = gastosPorCategoria[cat.nome] || 0;
+      const total = cat.orcamento || 0;
+      
+      // Cor dinâmica baseada no uso do orçamento
+      let color = 'var(--bd-teal)';
+      if (total > 0) {
+        if (spent > total) {
+          color = 'var(--bd-red)';
+        } else if (spent > total * 0.8) {
+          color = 'var(--bd-yellow)';
+        }
+      } else {
+        // Se não tem orçamento definido, cor padrão ou vermelha caso gaste muito
+        color = spent > 500 ? 'var(--bd-red)' : 'var(--bd-teal)';
+      }
+
+      return {
+        name: cat.nome,
+        spent,
+        total: total || spent || 1, // Fallback para não dar divisão por zero ou exibição errada
+        color,
+      };
+    });
+  }, [allCategories, gastosPorCategoria])
 
   // Transformar metas reais para o formato esperado pelo componente GoalList/GoalItem
   const metasFormatadas = useMemo(() => {
@@ -165,18 +184,25 @@ function VisaoGeral({ onAddClick }) {
     return { labels, data }
   }, [transacoes, mesAnoFiltro])
 
-  // 4. Radar: Gastos por Categoria (% do total)
+  // 4. Radar: Gastos vs Orçamento cadastrado
   const realRadarData = useMemo(() => {
-    const catNames = allCategories.length > 0
-      ? allCategories.map(c => c.nome).slice(0, 6)
-      : ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Educação']
-    const atual = catNames.map(c => gastosPorCategoria[c] || 0)
-    const maxVal = Math.max(...atual, 1)
+    // Usamos as categorias cadastradas, limitando a 8 no gráfico para legibilidade
+    const categoriesToUse = allCategories.length > 0
+      ? allCategories.slice(0, 8)
+      : [
+          { nome: 'Alimentação', orcamento: 500 },
+          { nome: 'Transporte', orcamento: 300 },
+          { nome: 'Moradia', orcamento: 1000 },
+          { nome: 'Lazer', orcamento: 200 },
+          { nome: 'Saúde', orcamento: 150 },
+          { nome: 'Educação', orcamento: 200 }
+        ];
+
     return {
-      labels: catNames,
-      atual: atual.map(v => Math.round((v / maxVal) * 100)),
-      meta: catNames.map(() => 100),
-    }
+      labels: categoriesToUse.map(c => c.nome),
+      atual: categoriesToUse.map(c => gastosPorCategoria[c.nome] || 0),
+      meta: categoriesToUse.map(c => c.orcamento || 0),
+    };
   }, [gastosPorCategoria, allCategories])
 
   // 5. Grouped Bar: Receitas vs Despesas nos últimos 7 meses
