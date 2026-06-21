@@ -165,17 +165,34 @@ function VisaoGeral({ onAddClick }) {
     return { labels, data }
   }, [transacoes, mesAnoFiltro])
 
-  // 4. Radar: Gastos por Categoria (% do total)
+  // 4. Radar: Gastos por Categoria (% do orçamento)
   const realRadarData = useMemo(() => {
-    const catNames = allCategories.length > 0
-      ? allCategories.map(c => c.nome).slice(0, 6)
+    let catList = allCategories.filter(c => (c.orcamento || 0) > 0 || (gastosPorCategoria[c.nome] || 0) > 0)
+    
+    // Se não houver dados, mostra pelo menos algumas categorias
+    if (catList.length === 0 && allCategories.length > 0) {
+      catList = allCategories.slice(0, 6)
+    }
+
+    const labels = catList.length > 0 
+      ? catList.map(c => c.nome)
       : ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde', 'Educação']
-    const atual = catNames.map(c => gastosPorCategoria[c] || 0)
-    const maxVal = Math.max(...atual, 1)
+
+    const atual = catList.length > 0
+      ? catList.map(c => {
+          const gasto = gastosPorCategoria[c.nome] || 0
+          const orcamento = c.orcamento || 0
+          if (orcamento === 0) return gasto > 0 ? 100 : 0
+          return Math.round((gasto / orcamento) * 100)
+        })
+      : labels.map(() => 0)
+
+    const meta = labels.map(() => 100)
+
     return {
-      labels: catNames,
-      atual: atual.map(v => Math.round((v / maxVal) * 100)),
-      meta: catNames.map(() => 100),
+      labels,
+      atual,
+      meta,
     }
   }, [gastosPorCategoria, allCategories])
 
@@ -277,10 +294,10 @@ function VisaoGeral({ onAddClick }) {
 
       {/* ── Row 4: Radar + Grouped Bar ── */}
       <div className="row g-3">
-        <div className="col-12 col-md-6 col-lg-4">
+        <div className="col-12 col-lg-6">
           <RadarChart data={realRadarData} />
         </div>
-        <div className="col-12 col-md-6 col-lg-8">
+        <div className="col-12 col-lg-6">
           <GroupedBarChart data={realGroupedBar} />
         </div>
       </div>
