@@ -383,10 +383,24 @@ export default function EditarDadosFinanceiros() {
   const [reservaMeses,    setReservaMeses]    = useState(financeiro?.reservaMeses    ?? "");
   const [percInvestimento, setPercInvestimento] = useState(financeiro?.percInvestimento ?? "");
 
-  /* Orçamento */
-  const [orcamento, setOrcamento] = useState(
-    financeiro?.orcamento ?? { alimentacao: "", transporte: "", lazer: "", saude: "", educacao: "" }
-  );
+  /* Orçamento local por categoria (estado temporário para digitação) */
+  const [orcamentoLocal, setOrcamentoLocal] = useState({});
+
+  // Sincroniza estado local com categorias do Redux quando elas mudam
+  useEffect(() => {
+    const map = {};
+    categories.forEach(cat => {
+      map[cat.id] = cat.orcamento ? String(cat.orcamento) : '';
+    });
+    setOrcamentoLocal(prev => {
+      // Só atualizar chaves novas ou que não estão sendo editadas
+      const merged = { ...map };
+      Object.keys(prev).forEach(id => {
+        if (id in merged) merged[id] = prev[id];
+      });
+      return merged;
+    });
+  }, [categories.length]); // só re-sincroniza quando o número de categorias muda
 
   /* Alertas */
   const [alertaGasto,  setAlertaGasto]  = useState(financeiro?.alertaGasto  ?? true);
@@ -466,7 +480,7 @@ export default function EditarDadosFinanceiros() {
       diaViradaMes: parseInt(diaVirada) || null,
     }));
 
-    dispatch(salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta }));
+    dispatch(salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, alertaGasto, alertaFatura, alertaMeta }));
 
     dispatch(mostrarToastTemporario("Dados financeiros salvos com sucesso!", "success"));
   };
@@ -814,20 +828,33 @@ export default function EditarDadosFinanceiros() {
                 </div>
               </div>
 
-              {/* Orçamento por categoria */}
+              {/* Orçamento por categoria — dinâmico, baseado nas categorias do sistema */}
               <div className="edf-card">
-                <p className="edf-section-title mb-3">📊 Orçamento por Categoria</p>
-                {[
-                  { key: "alimentacao", color: "#4ee3c4", label: "Alimentação" },
-                  { key: "transporte",  color: "#ACB6E5", label: "Transporte" },
-                  { key: "lazer",       color: "#4ee3a0", label: "Lazer" },
-                  { key: "saude",       color: "#f4c864", label: "Saúde" },
-                  { key: "educacao",    color: "#f06a6a", label: "Educação" },
-                ].map(({ key, color, label }) => (
-                  <div className="edf-budget-row" key={key}>
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <p className="edf-section-title">📊 Orçamento por Categoria</p>
+                  <span className="edf-item-count">{categories.length} {categories.length === 1 ? 'categoria' : 'categorias'}</span>
+                </div>
+                {categories.length === 0 && (
+                  <p style={{ fontSize: '0.8rem', color: 'var(--bd-muted)', textAlign: 'center', padding: '1rem 0' }}>
+                    Nenhuma categoria cadastrada. Crie suas categorias na seção ao lado.
+                  </p>
+                )}
+                {categories.map((cat) => (
+                  <div className="edf-budget-row" key={cat.id}>
                     <div className="edf-budget-cat">
-                      <span className="edf-budget-dot" style={{ background: color }} />
-                      <label className="edf-label mb-0">{label}</label>
+                      <div
+                        className="edf-cat-swatch"
+                        style={{
+                          background: cat.cor + '22',
+                          color: cat.cor,
+                          width: 26, height: 26, borderRadius: 7,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.75rem', flexShrink: 0,
+                        }}
+                      >
+                        <i className={`bi ${cat.icone}`} />
+                      </div>
+                      <label className="edf-label mb-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cat.nome}</label>
                     </div>
                     <div className="edf-budget-input">
                       <div className="edf-input-wrap no-mb">
@@ -835,8 +862,17 @@ export default function EditarDadosFinanceiros() {
                           className="edf-input no-prefix"
                           type="text"
                           placeholder="R$ 0,00"
-                          value={orcamento[key]}
-                          onChange={(e) => setOrcamento({ ...orcamento, [key]: e.target.value })}
+                          value={orcamentoLocal[cat.id] ?? (cat.orcamento ? String(cat.orcamento) : '')}
+                          onChange={(e) => {
+                            setOrcamentoLocal(prev => ({ ...prev, [cat.id]: e.target.value }));
+                          }}
+                          onBlur={() => {
+                            const raw = orcamentoLocal[cat.id] ?? '';
+                            const num = parseFloat(raw.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                            if (num !== (cat.orcamento || 0)) {
+                              dispatch(updateCategory({ id: cat.id, changes: { orcamento: num } }));
+                            }
+                          }}
                         />
                         <i className="bi bi-pencil edf-pencil-icon" />
                       </div>

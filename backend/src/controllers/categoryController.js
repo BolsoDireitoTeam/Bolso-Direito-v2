@@ -39,14 +39,14 @@ exports.getAll = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const userId = req.user;
-    const { nome, cor, icone } = req.body;
+    const { nome, cor, icone, orcamento } = req.body;
 
     const existing = await Category.findOne({ userId, nome: { $regex: new RegExp(`^${nome}$`, 'i') } });
     if (existing) {
       return res.status(400).json({ success: false, message: 'Você já possui uma categoria com esse nome.' });
     }
 
-    const newCat = await Category.create({ userId, nome, cor, icone, isDefault: false });
+    const newCat = await Category.create({ userId, nome, cor, icone, isDefault: false, orcamento: orcamento || 0 });
     res.status(201).json({ success: true, data: newCat });
   } catch (error) {
     throw error;
