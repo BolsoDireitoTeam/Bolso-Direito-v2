@@ -189,10 +189,20 @@ function VisaoGeral({ onAddClick }) {
 
     const meta = labels.map(() => 100)
 
+    const atualAbs = catList.length > 0
+      ? catList.map(c => gastosPorCategoria[c.nome] || 0)
+      : labels.map(() => 0)
+
+    const metaAbs = catList.length > 0
+      ? catList.map(c => c.orcamento || 0)
+      : labels.map(() => 0)
+
     return {
       labels,
       atual,
       meta,
+      atualAbs,
+      metaAbs,
     }
   }, [gastosPorCategoria, allCategories])
 
