@@ -1,15 +1,23 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppDispatch } from '../store/hooks'
+import { initFinance } from '../store/slices/financeSlice'
+import { selectAllCategories } from '../store/slices/categoriesSlice'
+import { useAppSelector } from '../store/hooks'
+import { mostrarToastTemporario } from '../store/slices/uiSlice'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 import { parsearCSV } from '../utils/csvParser'
 import { moeda } from '../utils/format'
 import ClassificadorDB from '../services/ClassificadorDB'
+import { api } from '../services/api'
 
 function UploadFatura() {
   const navigate = useNavigate()
-  const { mostrarToast, categorias, importarTransacoes } = useFinance()
+  const dispatch = useAppDispatch()
+  const cats = useAppSelector(selectAllCategories)
+  const categorias = cats.map(c => c.nome)
+  const mostrarToast = (msg, tipo) => dispatch(mostrarToastTemporario(msg, tipo))
   const inputRef = useRef()
   
   const [arquivo, setArquivo] = useState(null)
@@ -50,7 +58,7 @@ function UploadFatura() {
     reader.readAsText(arquivo)
   }
 
-  const handleImportar = () => {
+  const handleImportar = async () => {
     const selecionadas = transacoes.filter(t => t.selecionada)
     if (selecionadas.length === 0) {
       mostrarToast('Selecione pelo menos uma transação.', 'error')
@@ -62,9 +70,25 @@ function UploadFatura() {
       ClassificadorDB.aprender(tx.nome, tx.categoria)
     })
 
-    importarTransacoes(selecionadas)
-    mostrarToast('Fatura importada com sucesso!', 'success')
-    navigate('/transacoes')
+    try {
+      await api.post('/transactions/import-batch', {
+        transacoes: selecionadas.map(tx => ({
+          tipo: 'gasto',
+          subtipo: 'credito',
+          nome: tx.nome,
+          valor: tx.valor,
+          categoria: tx.categoria || 'Outros',
+          data: tx.data,
+          parcelas: tx.parcelas || 1,
+        }))
+      })
+      // Re-hidratar o estado financeiro
+      dispatch(initFinance())
+      mostrarToast('Fatura importada com sucesso!', 'success')
+      navigate('/transacoes')
+    } catch (error) {
+      mostrarToast(error.message || 'Erro ao importar fatura.', 'error')
+    }
   }
 
   const dropZoneStyle = {

@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useFinance } from "../hooks/useFinance";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { selectConfiguracoes, salvarConfiguracoes } from '../store/slices/financeSlice';
+import { selectFinanceiro, salvarFinanceiro } from '../store/slices/userSlice';
+import { selectAllCategories, addCategory, updateCategory, deleteCategory } from '../store/slices/categoriesSlice';
+import { mostrarToastTemporario } from '../store/slices/uiSlice';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -238,6 +242,89 @@ const styles = `
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--bd-border); color: var(--bd-muted);
   }
+
+  /* ── Categoria ── */
+  .edf-cat-row {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--bd-border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .edf-cat-row.editing { border-color: rgba(78,227,196,0.35); }
+  .edf-cat-row-header {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.55rem 0.8rem; cursor: pointer;
+  }
+  .edf-cat-row-header:hover { background: rgba(255,255,255,0.03); }
+  .edf-cat-swatch {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; flex-shrink: 0;
+  }
+  .edf-cat-name { flex: 1; font-size: 0.85rem; font-weight: 500; color: var(--bd-text); }
+  .edf-cat-badge {
+    font-size: 0.6rem; padding: 0.1rem 0.45rem;
+    background: rgba(255,255,255,0.07); border: 1px solid var(--bd-border);
+    border-radius: 4px; color: var(--bd-muted);
+  }
+  .edf-cat-chevron {
+    color: var(--bd-muted); font-size: 0.75rem;
+    transition: transform 0.2s;
+  }
+  .edf-cat-chevron.open { transform: rotate(180deg); }
+  .edf-cat-edit-panel {
+    border-top: 1px solid var(--bd-border);
+    padding: 0.9rem;
+    display: flex; flex-direction: column; gap: 0.75rem;
+  }
+  .edf-cat-edit-row { display: flex; gap: 0.5rem; align-items: center; }
+  .edf-cat-edit-label { font-size: 0.7rem; color: var(--bd-muted); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .edf-cat-input {
+    flex: 1; background: rgba(255,255,255,0.04);
+    border: 1px solid var(--bd-border); border-radius: 10px;
+    padding: 0.5rem 0.8rem; color: var(--bd-text);
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .edf-cat-input:focus { border-color: rgba(78,227,196,0.4); }
+  .edf-cat-color-input {
+    width: 36px; height: 36px; padding: 0; border: none;
+    border-radius: 8px; cursor: pointer; background: transparent;
+    flex-shrink: 0;
+  }
+  /* ── Icon picker grid ── */
+  .edf-icon-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.35rem;
+    max-height: 140px; overflow-y: auto;
+    padding: 0.25rem;
+  }
+  .edf-icon-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; cursor: pointer; color: var(--bd-muted);
+    transition: background 0.14s, border-color 0.14s, color 0.14s;
+  }
+  .edf-icon-btn:hover { background: rgba(255,255,255,0.09); color: var(--bd-text); }
+  .edf-icon-btn.selected { border-color: var(--bd-teal); color: var(--bd-teal); background: rgba(78,227,196,0.1); }
+  /* ── cat save row ── */
+  .edf-cat-actions { display: flex; gap: 0.5rem; }
+  .edf-cat-save-btn {
+    flex: 1; padding: 0.48rem 0; border-radius: 9px; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    background: rgba(78,227,196,0.12); border: 1px solid rgba(78,227,196,0.3); color: var(--bd-teal);
+    transition: opacity 0.15s;
+  }
+  .edf-cat-save-btn:hover { opacity: 0.82; }
+  .edf-cat-del-btn {
+    padding: 0.48rem 0.85rem; border-radius: 9px; font-size: 0.8rem;
+    cursor: pointer; background: rgba(240,106,106,0.08);
+    border: 1px solid rgba(240,106,106,0.2); color: #f06a6a;
+    transition: background 0.15s; flex-shrink: 0;
+  }
+  .edf-cat-del-btn:hover { background: rgba(240,106,106,0.15); }
 `;
 
 /* ── Helpers ── */
@@ -257,12 +344,26 @@ function pctColor(val) {
 /* ── Componente ── */
 export default function EditarDadosFinanceiros() {
   const navigate = useNavigate();
-  const { configuracoes, salvarConfiguracoes, mostrarToast, financeiro, salvarFinanceiro } = useFinance();
+  const location = useLocation();
+  const dispatch = useAppDispatch();
+  const configuracoes = useAppSelector(selectConfiguracoes);
+  const financeiro = useAppSelector(selectFinanceiro);
+  const categories = useAppSelector(selectAllCategories);
+
+  // ── Estado local para categorias ──
+  const [newCatName,  setNewCatName]  = useState('');
+  const [newCatColor, setNewCatColor] = useState('#4ee3c4');
+  const [newCatIcon,  setNewCatIcon]  = useState('bi-tag');
+  // editingCat: { id, nome, cor, icone } | null
+  const [editingCat,  setEditingCat]  = useState(null);
 
   /* Configurações do Cartão (Issue #21) */
   const [ccVencimento, setCcVencimento] = useState(configuracoes.diaVencimentoCartao ?? "");
   const [ccLimite, setCcLimite] = useState(configuracoes.limiteCartao ?? "");
   const [ccRecebimento, setCcRecebimento] = useState(configuracoes.diaRecebimentoSalario ?? "");
+
+  /* Virada de mês configurável */
+  const [diaVirada, setDiaVirada] = useState(configuracoes.diaViradaMes ?? "");
 
   /* Ganhos e gastos dinâmicos */
   const [ganhos, setGanhos] = useState(
@@ -283,10 +384,16 @@ export default function EditarDadosFinanceiros() {
   const [reservaMeses,    setReservaMeses]    = useState(financeiro?.reservaMeses    ?? "");
   const [percInvestimento, setPercInvestimento] = useState(financeiro?.percInvestimento ?? "");
 
-  /* Orçamento */
-  const [orcamento, setOrcamento] = useState(
-    financeiro?.orcamento ?? { alimentacao: "", transporte: "", lazer: "", saude: "", educacao: "" }
-  );
+  /* Orçamento por Categoria (estado local para edição) */
+  const [orcamentosLocais, setOrcamentosLocais] = useState({});
+  
+  useEffect(() => {
+    const orcs = {};
+    categories.forEach(c => {
+      orcs[c.id] = c.orcamento || "";
+    });
+    setOrcamentosLocais(orcs);
+  }, [categories]);
 
   /* Alertas */
   const [alertaGasto,  setAlertaGasto]  = useState(financeiro?.alertaGasto  ?? true);
@@ -296,11 +403,25 @@ export default function EditarDadosFinanceiros() {
   /* Toast */
   const [toast, setToast] = useState({ msg: "", type: "" });
 
+  /* Scroll para hash */
+  useEffect(() => {
+    if (location.hash === "#orcamento") {
+      // Pequeno timeout para garantir que o DOM renderizou
+      setTimeout(() => {
+        const el = document.getElementById("orcamento");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    }
+  }, [location]);
+
   /* Sincronizar configurações do contexto caso mudem */
   useEffect(() => {
     if (configuracoes.diaVencimentoCartao) setCcVencimento(configuracoes.diaVencimentoCartao);
     if (configuracoes.limiteCartao) setCcLimite(configuracoes.limiteCartao);
     if (configuracoes.diaRecebimentoSalario) setCcRecebimento(configuracoes.diaRecebimentoSalario);
+    if (configuracoes.diaViradaMes) setDiaVirada(configuracoes.diaViradaMes);
   }, [configuracoes]);
 
   /* ── Resumo calculado ── */
@@ -320,20 +441,65 @@ export default function EditarDadosFinanceiros() {
   const addGanho = () => setGanhos([...ganhos, { label: "Novo ganho", valor: "", icon: "bi-cash-coin" }]);
   const addGasto = () => setGastos([...gastos, { label: "Novo gasto", valor: "", icon: "bi-dash-circle" }]);
 
+  /* ── Categoria Handlers ── */
+  const ICON_LIST = [
+    'bi-tag','bi-cart','bi-house','bi-car-front','bi-heart-pulse','bi-book',
+    'bi-controller','bi-bag','bi-basket','bi-cash-coin','bi-cup-straw','bi-airplane',
+    'bi-music-note','bi-scissors','bi-bicycle','bi-bus-front','bi-building',
+    'bi-phone','bi-laptop','bi-film','bi-tree','bi-globe','bi-gift','bi-stars',
+    'bi-bank','bi-bolt','bi-shield-check','bi-umbrella','bi-person','bi-people',
+    'bi-bar-chart','bi-graph-up','bi-piggy-bank','bi-credit-card','bi-wallet2',
+  ];
+
+  const handleAddCat = () => {
+    if (!newCatName.trim()) return dispatch(mostrarToastTemporario('Nome da categoria não pode ser vazio.', 'error'));
+    dispatch(addCategory({ nome: newCatName.trim(), cor: newCatColor, icone: newCatIcon }));
+    setNewCatName(''); setNewCatIcon('bi-tag');
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingCat) return;
+    if (!editingCat.nome.trim()) return dispatch(mostrarToastTemporario('Nome não pode ser vazio.', 'error'));
+    const dupName = categories.find(c => c.id !== editingCat.id && c.nome.toLowerCase() === editingCat.nome.trim().toLowerCase());
+    if (dupName) return dispatch(mostrarToastTemporario('Já existe uma categoria com esse nome.', 'error'));
+    dispatch(updateCategory({ id: editingCat.id, changes: { nome: editingCat.nome.trim(), cor: editingCat.cor, icone: editingCat.icone } }));
+    setEditingCat(null);
+  };
+
+  const handleDelCat = (id) => {
+    if (window.confirm("Tem certeza? Transações desta categoria serão mantidas, mas re-categorizadas como 'Outros'.")) {
+      dispatch(deleteCategory(id));
+      if (editingCat?.id === id) setEditingCat(null);
+    }
+  };
+
+
   /* ── Salvar ── */
   const handleSubmit = (e) => {
     e.preventDefault();
 
     // Salvar configurações globais (Issue #21)
-    salvarConfiguracoes({
+    dispatch(salvarConfiguracoes({
       diaVencimentoCartao: parseInt(ccVencimento) || null,
       limiteCartao: parseFloat(String(ccLimite).replace(/[^\d.]/g, "")) || 0,
-      diaRecebimentoSalario: parseInt(ccRecebimento) || null
+      diaRecebimentoSalario: parseInt(ccRecebimento) || null,
+      diaViradaMes: parseInt(diaVirada) || null,
+    }));
+
+    dispatch(salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, alertaGasto, alertaFatura, alertaMeta }));
+
+    categories.forEach(cat => {
+      const novoOrcamentoStr = orcamentosLocais[cat.id];
+      if (novoOrcamentoStr !== undefined) {
+        const novoOrcamento = parseVal(novoOrcamentoStr);
+        const orcamentoAtual = cat.orcamento || 0;
+        if (novoOrcamento !== orcamentoAtual) {
+          dispatch(updateCategory({ id: cat.id, changes: { orcamento: novoOrcamento } }));
+        }
+      }
     });
 
-    salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta });
-
-    mostrarToast("Dados financeiros salvos com sucesso!", "success");
+    dispatch(mostrarToastTemporario("Dados financeiros salvos com sucesso!", "success"));
   };
 
   /* ── Render ── */
@@ -409,7 +575,137 @@ export default function EditarDadosFinanceiros() {
                 </button>
               </div>
 
-              {/* Gastos Fixos */}
+              {/* ── Categorias Personalizadas ── */}
+              <div className="edf-card">
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <p className="edf-section-title">🏷️ Categorias Personalizadas</p>
+                  <span className="edf-item-count">{categories.length} {categories.length === 1 ? 'item' : 'itens'}</span>
+                </div>
+
+                {/* Lista */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                  {categories.map(cat => {
+                    const isEditing = editingCat?.id === cat.id;
+                    const swatchBg  = (isEditing ? editingCat.cor : cat.cor) + '22';
+                    const swatchClr = isEditing ? editingCat.cor : cat.cor;
+                    return (
+                      <div key={cat.id} className={`edf-cat-row${isEditing ? ' editing' : ''}`}>
+                        {/* Header clicável */}
+                        <div
+                          className="edf-cat-row-header"
+                          onClick={() => setEditingCat(isEditing ? null : { id: cat.id, nome: cat.nome, cor: cat.cor, icone: cat.icone })}
+                        >
+                          <div className="edf-cat-swatch" style={{ background: swatchBg, color: swatchClr }}>
+                            <i className={`bi ${isEditing ? editingCat.icone : cat.icone}`} />
+                          </div>
+                          <span className="edf-cat-name">{isEditing ? (editingCat.nome || cat.nome) : cat.nome}</span>
+                          {cat.isDefault && <span className="edf-cat-badge">Padrão</span>}
+                          <i className={`bi bi-chevron-down edf-cat-chevron${isEditing ? ' open' : ''}`} />
+                        </div>
+
+                        {/* Painel de edição */}
+                        {isEditing && (
+                          <div className="edf-cat-edit-panel">
+                            <div>
+                              <p className="edf-cat-edit-label">Nome</p>
+                              <input
+                                className="edf-cat-input"
+                                style={{ width: '100%' }}
+                                type="text"
+                                value={editingCat.nome}
+                                onChange={e => setEditingCat(prev => ({ ...prev, nome: e.target.value }))}
+                                placeholder="Nome da categoria..."
+                              />
+                            </div>
+
+                            <div>
+                              <p className="edf-cat-edit-label">Cor</p>
+                              <div className="edf-cat-edit-row">
+                                <input
+                                  type="color"
+                                  className="edf-cat-color-input"
+                                  value={editingCat.cor}
+                                  onChange={e => setEditingCat(prev => ({ ...prev, cor: e.target.value }))}
+                                />
+                                <span style={{ fontSize: '0.8rem', color: 'var(--bd-muted)', fontFamily: 'monospace' }}>{editingCat.cor}</span>
+                                <div className="edf-cat-swatch" style={{ background: editingCat.cor + '22', color: editingCat.cor, marginLeft: 'auto' }}>
+                                  <i className={`bi ${editingCat.icone}`} />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div>
+                              <p className="edf-cat-edit-label">Ícone</p>
+                              <div className="edf-icon-grid">
+                                {ICON_LIST.map(icon => (
+                                  <button
+                                    key={icon}
+                                    type="button"
+                                    className={`edf-icon-btn${editingCat.icone === icon ? ' selected' : ''}`}
+                                    onClick={() => setEditingCat(prev => ({ ...prev, icone: icon }))}
+                                    title={icon.replace('bi-', '')}
+                                  >
+                                    <i className={`bi ${icon}`} />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="edf-cat-actions">
+                              <button type="button" className="edf-cat-save-btn" onClick={handleSaveEdit}>
+                                <i className="bi bi-check-lg" style={{ marginRight: '0.3rem' }} /> Salvar alterações
+                              </button>
+                              <button type="button" className="edf-cat-del-btn" onClick={() => handleDelCat(cat.id)}>
+                                <i className="bi bi-trash3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Adicionar nova categoria */}
+                <hr className="edf-divider" />
+                <p className="edf-cat-edit-label" style={{ marginBottom: '0.6rem' }}>Nova Categoria</p>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem' }}>
+                  <input
+                    type="color"
+                    className="edf-cat-color-input"
+                    value={newCatColor}
+                    onChange={e => setNewCatColor(e.target.value)}
+                    title="Escolher cor"
+                  />
+                  <input
+                    type="text"
+                    className="edf-cat-input"
+                    style={{ flex: 1 }}
+                    placeholder="Nome da nova categoria..."
+                    value={newCatName}
+                    onChange={e => setNewCatName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCat())}
+                  />
+                </div>
+                <div className="edf-icon-grid" style={{ marginBottom: '0.75rem' }}>
+                  {ICON_LIST.map(icon => (
+                    <button
+                      key={icon}
+                      type="button"
+                      className={`edf-icon-btn${newCatIcon === icon ? ' selected' : ''}`}
+                      onClick={() => setNewCatIcon(icon)}
+                      title={icon.replace('bi-', '')}
+                    >
+                      <i className={`bi ${icon}`} />
+                    </button>
+                  ))}
+                </div>
+                <button type="button" className="edf-btn-add-item" onClick={handleAddCat}>
+                  <i className="bi bi-plus-lg" /> Adicionar categoria
+                </button>
+              </div>
+
+                            {/* Gastos Fixos */}
               <div className="edf-card">
                 <div className="d-flex align-items-center justify-content-between mb-3">
                   <p className="edf-section-title">💸 Gastos Fixos</p>
@@ -482,6 +778,44 @@ export default function EditarDadosFinanceiros() {
               </div>
 
 
+              {/* Virada de mês */}
+              <div className="edf-card">
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <p className="edf-section-title">📅 Virada de Mês Automática</p>
+                  {diaVirada && (
+                    <span style={{
+                      background: 'rgba(78,227,196,0.12)',
+                      border: '1px solid rgba(78,227,196,0.25)',
+                      color: 'var(--bd-teal)',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      padding: '0.15rem 0.6rem',
+                      borderRadius: '20px',
+                    }}>
+                      Todo dia {diaVirada}
+                    </span>
+                  )}
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--bd-muted)', marginBottom: '1rem', lineHeight: 1.5 }}>
+                  Quando chegar este dia, o sistema consolida automaticamente a fatura do mês anterior e prepara o novo ciclo.
+                </p>
+
+                <label className="edf-label">Dia do mês para virar (1–28)</label>
+                <div className="edf-input-wrap no-mb">
+                  <i className="bi bi-arrow-repeat edf-prefix-icon" />
+                  <input
+                    className="edf-input"
+                    type="number"
+                    min="1"
+                    max="28"
+                    placeholder="ex: 1 (primeiro dia do mês)"
+                    value={diaVirada}
+                    onChange={(e) => setDiaVirada(e.target.value)}
+                  />
+                  <i className="bi bi-pencil edf-pencil-icon" />
+                </div>
+              </div>
+
               {/* Configurações do Cartão e Salário (Issue #21) */}
               <div className="edf-card">
                 <p className="edf-section-title mb-3">⚙️ Configurações do Cartão e Salário</p>
@@ -512,19 +846,13 @@ export default function EditarDadosFinanceiros() {
               </div>
 
               {/* Orçamento por categoria */}
-              <div className="edf-card">
+              <div className="edf-card" id="orcamento">
                 <p className="edf-section-title mb-3">📊 Orçamento por Categoria</p>
-                {[
-                  { key: "alimentacao", color: "#4ee3c4", label: "Alimentação" },
-                  { key: "transporte",  color: "#ACB6E5", label: "Transporte" },
-                  { key: "lazer",       color: "#4ee3a0", label: "Lazer" },
-                  { key: "saude",       color: "#f4c864", label: "Saúde" },
-                  { key: "educacao",    color: "#f06a6a", label: "Educação" },
-                ].map(({ key, color, label }) => (
-                  <div className="edf-budget-row" key={key}>
+                {categories.map((cat) => (
+                  <div className="edf-budget-row" key={cat.id}>
                     <div className="edf-budget-cat">
-                      <span className="edf-budget-dot" style={{ background: color }} />
-                      <label className="edf-label mb-0">{label}</label>
+                      <span className="edf-budget-dot" style={{ background: cat.cor }} />
+                      <label className="edf-label mb-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cat.nome}</label>
                     </div>
                     <div className="edf-budget-input">
                       <div className="edf-input-wrap no-mb">
@@ -532,8 +860,8 @@ export default function EditarDadosFinanceiros() {
                           className="edf-input no-prefix"
                           type="text"
                           placeholder="R$ 0,00"
-                          value={orcamento[key]}
-                          onChange={(e) => setOrcamento({ ...orcamento, [key]: e.target.value })}
+                          value={orcamentosLocais[cat.id] ?? ""}
+                          onChange={(e) => setOrcamentosLocais({ ...orcamentosLocais, [cat.id]: e.target.value })}
                         />
                         <i className="bi bi-pencil edf-pencil-icon" />
                       </div>

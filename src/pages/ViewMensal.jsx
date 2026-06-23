@@ -5,7 +5,8 @@
 // ============================================================
 
 import { useState, useMemo } from 'react'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector } from '../store/hooks'
+import { selectTransacoes } from '../store/slices/financeSlice'
 import { moeda, nomeMes, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
@@ -17,7 +18,7 @@ function avancarMes(mesAno, delta) {
 }
 
 function ViewMensal() {
-  const { transacoes, estado } = useFinance()
+  const transacoes = useAppSelector(selectTransacoes)
   const [mes, setMes] = useState(mesAtual())
 
   const stats = useMemo(() => {

@@ -1,0 +1,256 @@
+/* ============================================================
+   Bolso Direito v2 — fatura.css
+   Tela de Fatura do Cartão de Crédito
+   ============================================================ */
+
+/* ── Navegação de meses ── */
+.fatura-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.fatura-nav-btn {
+  width: 38px; height: 38px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--bd-muted);
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+.fatura-nav-btn:hover {
+  background: rgba(78,227,196,0.08);
+  border-color: rgba(78,227,196,0.25);
+  color: var(--bd-teal);
+}
+.fatura-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.fatura-nav-label {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+  color: var(--bd-text);
+  min-width: 160px;
+  text-align: center;
+}
+
+.fatura-nav-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+.fatura-nav-badge.atual {
+  background: rgba(78,227,196,0.12);
+  border: 1px solid rgba(78,227,196,0.25);
+  color: var(--bd-teal);
+}
+.fatura-nav-badge.passada {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--bd-muted);
+}
+
+/* ── Summary cards ── */
+.fatura-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .fatura-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fatura-summary-card {
+  background: var(--bd-card);
+  border: 1px solid var(--bd-border);
+  border-radius: 14px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.fatura-summary-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  margin: 0 auto 0.5rem;
+}
+
+.fatura-summary-label {
+  font-size: 0.68rem;
+  color: var(--bd-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.25rem;
+}
+
+.fatura-summary-value {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1rem, 2.5vw, 1.15rem);
+}
+
+/* ── Lista de itens da fatura ── */
+.fatura-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.15s;
+}
+.fatura-item:last-child { border-bottom: none; }
+.fatura-item:hover { background: rgba(255,255,255,0.02); border-radius: 10px; margin: 0 -0.5rem; padding: 0.75rem 0.5rem; }
+
+.fatura-item-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  background: rgba(172,182,229,0.12);
+  color: var(--bd-purple);
+}
+
+.fatura-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.fatura-item-info strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--bd-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fatura-item-info small {
+  font-size: 0.72rem;
+  color: var(--bd-muted);
+}
+
+.fatura-item-parcela {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(172,182,229,0.1);
+  border: 1px solid rgba(172,182,229,0.2);
+  color: var(--bd-purple);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fatura-item-valor {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--bd-text);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Timeline de faturas (mini-nav) ── */
+.fatura-timeline {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.2rem 0;
+  margin-bottom: 1.25rem;
+  scrollbar-width: none;
+}
+.fatura-timeline::-webkit-scrollbar { display: none; }
+
+.fatura-timeline-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--bd-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+.fatura-timeline-item:hover {
+  background: rgba(78,227,196,0.06);
+  border-color: rgba(78,227,196,0.2);
+  color: var(--bd-teal);
+}
+.fatura-timeline-item.active {
+  background: rgba(78,227,196,0.1);
+  border-color: rgba(78,227,196,0.3);
+  color: var(--bd-teal);
+  font-weight: 700;
+}
+
+/* ── Empty state ── */
+.fatura-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: rgba(255,255,255,0.45);
+}
+.fatura-empty i {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.75rem;
+  opacity: 0.4;
+}
+.fatura-empty p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+.fatura-empty small {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.3);
+  margin-top: 0.3rem;
+  display: block;
+}
+
+/* ── Total footer ── */
+.fatura-total-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(172,182,229,0.08), rgba(78,227,196,0.06));
+  border: 1px solid rgba(172,182,229,0.15);
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  margin-top: 1rem;
+}
+
+.fatura-total-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--bd-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fatura-total-value {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.05rem, 3vw, 1.25rem);
+  color: var(--bd-purple);
+}

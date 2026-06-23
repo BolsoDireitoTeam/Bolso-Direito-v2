@@ -4,9 +4,11 @@
 //  Origem: app.js L207-315 (v1) — reescrito em React
 // ============================================================
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { adicionarGanho } from '../store/slices/financeSlice'
+import { selectMesAnoFiltro, selectTransacaoPendente, setTransacaoPendente, mostrarToastTemporario } from '../store/slices/uiSlice'
 import { moeda, hojeISO, mesAtual } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import '../styles/teclado.css'
@@ -20,9 +22,8 @@ const TECLAS = [
 
 function avaliarExpressao(expr) {
   try {
-    // Substitui , por . e avalia apenas adição/subtração simples
     const limpa = expr.replace(/,/g, '.').replace(/[^0-9+\-.]/g, '')
-    const resultado = Function('"use strict"; return (' + limpa + ')')()
+    const resultado = Function('"use strict"; return (' + limpa + ')')(  )
     return typeof resultado === 'number' && isFinite(resultado) ? resultado : null
   } catch {
     return null
@@ -30,9 +31,10 @@ function avaliarExpressao(expr) {
 }
 
 function TecladoValores() {
-  const { tipo } = useParams()           // 'ganho' | 'gasto'
+  const { tipo } = useParams()
   const navigate = useNavigate()
-  const { adicionarGanho, setTransacaoPendente, mostrarToast, mesAnoFiltro } = useFinance()
+  const dispatch = useAppDispatch()
+  const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
 
   // Data padrão: hoje se for o mês atual, ou primeiro dia do mês selecionado
   const dataDefault = mesAnoFiltro === mesAtual()
@@ -50,6 +52,7 @@ function TecladoValores() {
 
   // Valor calculado para exibição
   const valorCalculado = avaliarExpressao(expressao) ?? 0
+  const haValor = valorCalculado > 0
 
   const handleTecla = useCallback((tecla) => {
     if (tecla === '⌫') {
@@ -80,33 +83,57 @@ function TecladoValores() {
     }
   }, [])
 
-  const handleConfirmar = () => {
+  const handleConfirmar = async () => {
     const valor = avaliarExpressao(expressao)
     if (!valor || valor <= 0) {
-      mostrarToast('Informe um valor válido maior que zero.', 'error')
+      dispatch(mostrarToastTemporario('Informe um valor válido maior que zero.', 'error'))
       return
     }
 
     if (isGanho) {
       if (!nome.trim()) {
-        mostrarToast('Informe uma descrição para o ganho.', 'error')
+        dispatch(mostrarToastTemporario('Informe uma descrição para o ganho.', 'error'))
         return
       }
       try {
-        adicionarGanho({ nome: nome.trim(), valor, data: dataDefault })
-        mostrarToast(`Ganho de ${moeda(valor)} adicionado! 🎉`, 'success')
+        await dispatch(adicionarGanho({ nome: nome.trim(), valor, data: dataDefault })).unwrap()
+        dispatch(mostrarToastTemporario(`Ganho de ${moeda(valor)} adicionado! 🎉`, 'success'))
         navigate('/')
       } catch (err) {
-        mostrarToast(err.message, 'error')
+        dispatch(mostrarToastTemporario(err.message, 'error'))
       }
     } else {
       // Gasto → próxima etapa: escolher categoria
-      setTransacaoPendente({ valor, nome: '' })
+      dispatch(setTransacaoPendente({ valor, nome: '' }))
       navigate('/transacoes/categoria')
     }
   }
 
-  const haValor = valorCalculado > 0
+  // Ref para sempre ter a versão mais recente de handleConfirmar no listener
+  const confirmarRef = useRef(handleConfirmar)
+  confirmarRef.current = handleConfirmar
+
+  // ── Suporte a input via teclado físico ──
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignora se o foco estiver no campo de texto (descrição)
+      if (e.target.tagName.toLowerCase() === 'input') return
+
+      const key = e.key
+      if (/^[0-9+\-.,]$/.test(key)) {
+        e.preventDefault()
+        handleTecla(key === ',' ? '.' : key)
+      } else if (key === 'Backspace') {
+        e.preventDefault()
+        handleTecla('⌫')
+      } else if (key === 'Enter') {
+        e.preventDefault()
+        confirmarRef.current()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleTecla])
 
   return (
     <div className="teclado-page">

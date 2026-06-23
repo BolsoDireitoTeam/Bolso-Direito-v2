@@ -1,13 +1,21 @@
 import { Link } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { selectConfiguracoes, selectSaldo } from '../store/slices/financeSlice'
+import { selectInvestimentos, selectInvestimentosStatus, selectInvestimentosError, calcularValorInvestimento, removerInvestimento, aportarInvestimento } from '../store/slices/investimentosSlice'
 import { moeda, mesAtualLabel } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import PaywallOverlay from '../components/ui/PaywallOverlay'
 import Card from '../components/ui/Card'
+import { LoadingSpinner, ErrorBanner } from '../components/ui/LoadingSpinner'
 
 function CarteiraInvestimentos({ onAddClick }) {
-  const { configuracoes, investimentos, calcularValorInvestimento, removerInvestimento, aportarInvestimento, saldo } = useFinance()
-  const isPremium = configuracoes.plano === 'pago'
+  const dispatch = useAppDispatch()
+  const configuracoes = useAppSelector(selectConfiguracoes)
+  const saldo = useAppSelector(selectSaldo)
+  const investimentos = useAppSelector(selectInvestimentos)
+  const invStatus = useAppSelector(selectInvestimentosStatus)
+  const invError = useAppSelector(selectInvestimentosError)
+  const isPremium = configuracoes.plano === 'premium'
 
   return (
     <div style={{ position: 'relative', minHeight: '60vh' }}>
@@ -18,7 +26,10 @@ function CarteiraInvestimentos({ onAddClick }) {
         />
       )}
 
-      <div style={{ filter: isPremium ? 'none' : 'blur(4px)', pointerEvents: isPremium ? 'auto' : 'none' }}>
+      {invStatus === 'loading' && <LoadingSpinner mensagem="Carregando investimentos..." />}
+      {invStatus === 'failed' && <ErrorBanner mensagem={invError || 'Erro ao carregar investimentos.'} />}
+
+      <div style={{ pointerEvents: isPremium ? 'auto' : 'none' }}>
         <PageHeader
           greeting="Minha Carteira"
           title="Ativos Atuais"
@@ -79,7 +90,7 @@ function CarteiraInvestimentos({ onAddClick }) {
                         <small style={{ color: 'var(--bd-muted)' }}>{inv.tipo}</small>
                       </div>
                       <button 
-                        onClick={() => { if(window.confirm(`Resgatar "${inv.nome}"?`)) removerInvestimento(inv.id) }}
+                        onClick={() => { if(window.confirm(`Resgatar "${inv.nome}"?`)) dispatch(removerInvestimento(inv.id)) }}
                         style={{ background: 'none', border: 'none', color: 'var(--bd-muted)', cursor: 'pointer', fontSize: '0.9rem' }}
                         title="Resgatar investimento"
                       >
@@ -128,7 +139,7 @@ function CarteiraInvestimentos({ onAddClick }) {
                         const val = prompt(`Aportar quanto em "${inv.nome}"?\nSaldo disponível: ${moeda(saldo)}`)
                         if (val) {
                           const v = parseFloat(val.replace(',', '.'))
-                          if (v > 0) aportarInvestimento(inv.id, v)
+                          if (v > 0) dispatch(aportarInvestimento({ id: inv.id, valor: v }))
                         }
                       }}
                     >

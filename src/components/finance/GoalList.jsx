@@ -9,6 +9,7 @@ function GoalList({ goals }) {
         title="Metas"
         linkText="Nova"
         linkIcon="bi-plus"
+        linkHref="/metas"
       />
       {goals.map(goal => (
         <GoalItem key={goal.id} goal={goal} />

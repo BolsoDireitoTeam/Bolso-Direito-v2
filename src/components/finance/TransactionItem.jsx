@@ -1,4 +1,6 @@
 import { moeda, dataFormatada } from '../../utils/format'
+import { useAppSelector } from '../../store/hooks'
+import { selectAllCategories } from '../../store/slices/categoriesSlice'
 
 /**
  * TransactionItem — adaptado para formato BolsoDB.

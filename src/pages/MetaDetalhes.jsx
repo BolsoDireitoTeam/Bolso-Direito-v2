@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { selectSaldo } from '../store/slices/financeSlice'
+import { selectMetas, contribuirMetaSaldo, resgatarMetaSaldo, editarMeta, removerMeta } from '../store/slices/metasSlice'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 import ProgressBar from '../components/ui/ProgressBar'
@@ -32,11 +34,9 @@ const COLORS = [
 function MetaDetalhes() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const {
-    metas, saldo,
-    contribuirMetaSaldo, resgatarMetaSaldo,
-    editarMeta, removerMeta
-  } = useFinance()
+  const dispatch = useAppDispatch()
+  const metas = useAppSelector(selectMetas)
+  const saldo = useAppSelector(selectSaldo)
 
   const meta = metas.find(m => m.id === id)
 
@@ -92,7 +92,7 @@ function MetaDetalhes() {
       setModalErro(`Saldo insuficiente. Disponível: ${formatBRL(saldo)}`)
       return
     }
-    contribuirMetaSaldo(meta.id, valor)
+    dispatch(contribuirMetaSaldo({ id: meta.id, valor }))
     setModal(null)
     setModalValor('')
     setModalErro('')
@@ -109,7 +109,7 @@ function MetaDetalhes() {
       setModalErro(`Máximo resgatável: ${formatBRL(meta.valorAtual)}`)
       return
     }
-    resgatarMetaSaldo(meta.id, valor)
+    dispatch(resgatarMetaSaldo({ id: meta.id, valor }))
     setModal(null)
     setModalValor('')
     setModalErro('')
@@ -126,19 +126,19 @@ function MetaDetalhes() {
       setModalErro('Valor-alvo deve ser maior que zero.')
       return
     }
-    editarMeta(meta.id, {
+    dispatch(editarMeta({ id: meta.id, patch: {
       nome: editNome.trim(),
       icone: editIcone,
       valorAlvo: target,
       cor: editColor,
-    })
+    } }))
     setModal(null)
     setModalErro('')
   }
 
   /* ── Delete handler ── */
   const handleDelete = () => {
-    removerMeta(meta.id)
+    dispatch(removerMeta(meta.id))
     navigate('/metas')
   }
 

@@ -5,7 +5,9 @@
 // ============================================================
 
 import { useNavigate } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../store/hooks'
+import { selectAllCategories } from '../store/slices/categoriesSlice'
+import { selectTransacaoPendente, setTransacaoPendente } from '../store/slices/uiSlice'
 import { moeda } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 
@@ -23,7 +25,10 @@ const ICONES_CATEGORIA = {
 
 function EscolherCategoria() {
   const navigate = useNavigate()
-  const { categorias, transacaoPendente, setTransacaoPendente } = useFinance()
+  const dispatch = useAppDispatch()
+  const cats = useAppSelector(selectAllCategories)
+  const categorias = cats
+  const transacaoPendente = useAppSelector(selectTransacaoPendente)
 
   // Redireciona se não há transação pendente
   if (!transacaoPendente) {
@@ -32,7 +37,7 @@ function EscolherCategoria() {
   }
 
   const handleCategoria = (categoria) => {
-    setTransacaoPendente({ ...transacaoPendente, categoria })
+    dispatch(setTransacaoPendente({ ...transacaoPendente, categoria }))
     navigate('/transacoes/tipo')
   }
 
@@ -52,14 +57,13 @@ function EscolherCategoria() {
         }}
       >
         {categorias.map(cat => {
-          const cfg = ICONES_CATEGORIA[cat] || ICONES_CATEGORIA['Outros']
           return (
             <button
-              key={cat}
-              onClick={() => handleCategoria(cat)}
+              key={cat.id}
+              onClick={() => handleCategoria(cat.nome)}
               style={{
-                background: cfg.bg,
-                border: `1px solid ${cfg.color}22`,
+                background: `rgba(${parseInt(cat.cor.slice(1,3), 16)}, ${parseInt(cat.cor.slice(3,5), 16)}, ${parseInt(cat.cor.slice(5,7), 16)}, 0.12)`,
+                border: `1px solid ${cat.cor}22`,
                 borderRadius: '14px',
                 padding: '1.1rem 0.5rem',
                 cursor: 'pointer',
@@ -73,8 +77,8 @@ function EscolherCategoria() {
               onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             >
               <i
-                className={`bi ${cfg.icon}`}
-                style={{ fontSize: '1.5rem', color: cfg.color }}
+                className={`bi ${cat.icone}`}
+                style={{ fontSize: '1.5rem', color: cat.cor }}
               />
               <span
                 style={{
@@ -85,7 +89,7 @@ function EscolherCategoria() {
                   lineHeight: 1.2,
                 }}
               >
-                {cat}
+                {cat.nome}
               </span>
             </button>
           )

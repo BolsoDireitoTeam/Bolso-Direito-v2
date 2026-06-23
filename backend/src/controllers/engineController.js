@@ -1,0 +1,115 @@
+const Transaction = require('../models/transactionModel');
+const RecurrentTransaction = require('../models/recurrentModel');
+const Goal = require('../models/goalModel');
+const User = require('../models/userModel');
+
+exports.virarMes = async (req, res) => {
+  try {
+    const userId = req.user;
+    const { mesAlvo, dataRef } = req.body;
+    
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+
+    const data = dataRef || new Date().toISOString().slice(0, 10);
+    const mesVirada = mesAlvo || data.slice(0, 7);
+
+    // ── Idempotência: não processar o mesmo mês duas vezes ──
+    if (user.financeiro?.ultimoMesProcessado === mesVirada) {
+      return res.status(200).json({
+        success: true,
+        message: `Mês ${mesVirada} já foi processado anteriormente.`,
+        data: {
+          mesAlvo: mesVirada,
+          jaProcessado: true,
+          saldoAntes: user.financeiro?.saldo || 0,
+          totalGanhos: 0,
+          totalGastos: 0,
+          totalFatura: 0,
+          totalMetas: 0,
+          saldoDepois: user.financeiro?.saldo || 0,
+        }
+      });
+    }
+
+    let saldoAtual = user.financeiro?.saldo || 0;
+    const saldoAntes = saldoAtual;
+
+    // 1. Ganhos Mensais
+    const ganhos = await RecurrentTransaction.find({ userId, tipo: 'ganho' });
+    let totalGanhos = 0;
+    for (const g of ganhos) {
+      saldoAtual += g.valor;
+      totalGanhos += g.valor;
+      await Transaction.create({ userId, tipo: 'ganho', origem: 'mensal', nome: g.nome, data, valor: g.valor, mesVirada });
+    }
+
+    // 2. Gastos Mensais
+    const gastos = await RecurrentTransaction.find({ userId, tipo: 'gasto' });
+    let totalGastos = 0;
+    for (const g of gastos) {
+      saldoAtual -= g.valor;
+      totalGastos += g.valor;
+      await Transaction.create({ userId, tipo: 'gasto', subtipo: 'debito', origem: 'mensal', nome: g.nome, data, valor: g.valor, categoria: g.categoria, mesVirada });
+    }
+
+    // 3. Faturas
+    const faturas = await Transaction.find({ userId, isInvoiceItem: true, mesFatura: mesVirada });
+    let totalFatura = 0;
+    if (faturas.length > 0) {
+      totalFatura = faturas.reduce((acc, p) => acc + p.valor, 0);
+      saldoAtual -= totalFatura;
+      await Transaction.create({
+        userId, tipo: 'gasto', subtipo: 'credito', origem: 'fatura', nome: `Fatura ${mesVirada}`, data, valor: totalFatura, categoria: 'Outros', mesVirada
+      });
+      // Deletar as parcelas que já viraram transação consolidada
+      for (const f of faturas) {
+        await Transaction.findByIdAndDelete(f._id);
+      }
+    }
+
+    // 4. Metas (Autopilot)
+    const metas = await Goal.find({ userId });
+    const agendamentosAtivos = metas.filter(m => m.agendamento && m.agendamento.ativo);
+    let totalMetas = 0;
+
+    for (const m of agendamentosAtivos) {
+      const valorAporte = m.agendamento.valor;
+      if (valorAporte <= 0) continue;
+      saldoAtual -= valorAporte;
+      totalMetas += valorAporte;
+      await Transaction.create({ userId, tipo: 'gasto', subtipo: 'debito', origem: 'meta', nome: `Aporte: ${m.nome}`, data, valor: valorAporte, categoria: 'Poupança', metaId: m._id.toString(), mesVirada });
+      
+      const novoValor = Number((m.valorAtual + valorAporte).toFixed(2));
+      const novoAporte = { valor: valorAporte, data, tipo: 'autopilot' };
+      await Goal.findByIdAndUpdate(m._id, { valorAtual: novoValor, $push: { aportes: novoAporte } });
+    }
+
+    // 5. Commit — salva saldo E marca o mês como processado (atômico)
+    await User.findByIdAndUpdate(userId, {
+      'financeiro.saldo': saldoAtual,
+      'financeiro.ultimoMesProcessado': mesVirada,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        mesAlvo: mesVirada,
+        saldoAntes,
+        totalGanhos,
+        totalGastos,
+        totalFatura,
+        totalMetas,
+        saldoDepois: saldoAtual
+      }
+    });
+
+  } catch (error) {
+    console.error('[Engine] Erro na virada de mês:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao executar a virada de mês.',
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+    });
+  }
+};

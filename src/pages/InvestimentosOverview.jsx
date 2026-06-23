@@ -1,13 +1,15 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector } from '../store/hooks'
+import { selectInvestimentos, selectInvestimentosTotais, calcularValorInvestimento } from '../store/slices/investimentosSlice'
 import { moeda, mesAtualLabel } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
 import DoubleLineChart from '../components/charts/DoubleLineChart'
 
 function InvestimentosOverview() {
-  const { investimentos, investimentosTotais, calcularValorInvestimento } = useFinance()
+  const investimentos = useAppSelector(selectInvestimentos)
+  const investimentosTotais = useAppSelector(selectInvestimentosTotais)
 
   const { montanteTotal, totalInvestido, rendimentoTotal } = investimentosTotais
   const rendPct = totalInvestido > 0

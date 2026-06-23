@@ -9,6 +9,7 @@ function BudgetList({ categories }) {
         title="Orçamento"
         linkText="Editar"
         linkIcon="bi-pencil"
+        linkHref="/editar-dados-financeiros#orcamento"
       />
       {categories.map(cat => (
         <BudgetCategory key={cat.name} category={cat} />

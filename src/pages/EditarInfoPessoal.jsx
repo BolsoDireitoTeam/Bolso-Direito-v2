@@ -1,6 +1,10 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useFinance } from "../hooks/useFinance";
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { selectUsuario, salvarUsuario } from '../store/slices/userSlice';
+import { mostrarToastTemporario } from '../store/slices/uiSlice';
+import { editarInfoPessoalSchema } from '../validation/schemas';
+import { api } from '../services/api';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -257,7 +261,8 @@ function calcStrength(val) {
 /* ── Componente ── */
 export default function EditarInfoPessoal() {
   const navigate = useNavigate();
-  const { usuario, salvarUsuario } = useFinance();
+  const dispatch = useAppDispatch();
+  const usuario = useAppSelector(selectUsuario);
   const avatarInputRef = useRef(null);
 
   const [nome,          setNome]          = useState(usuario?.nome   ?? "Usuário");
@@ -276,7 +281,7 @@ export default function EditarInfoPessoal() {
   const [showNovaSenha,     setShowNovaSenha]     = useState(false);
   const [showConfirmar,     setShowConfirmar]     = useState(false);
 
-  const [toast,   setToast]   = useState({ msg: "", type: "" });
+  const [saving, setSaving] = useState(false);
   const strength = calcStrength(novaSenha);
 
   /* ── Preview avatar ── */
@@ -288,16 +293,30 @@ export default function EditarInfoPessoal() {
     reader.readAsDataURL(file);
   };
 
-  /* ── Salvar ── */
-  const handleSubmit = (e) => {
+  /* ── Salvar (com validação Yup + API real) ── */
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (novaSenha && novaSenha !== confirmarSenha) {
-      setToast({ msg: "As senhas não coincidem.", type: "error" });
+    try {
+      await editarInfoPessoalSchema.validate(
+        { nome, email, celular, novaSenha, confirmarSenha },
+        { abortEarly: false }
+      );
+    } catch (err) {
+      const msg = err.inner?.[0]?.message || err.message;
+      dispatch(mostrarToastTemporario(msg, 'error'));
       return;
     }
-    salvarUsuario({ nome, email, celular, avatar: avatarSrc });
-    setToast({ msg: "Alterações salvas com sucesso!", type: "success" });
-    setTimeout(() => setToast({ msg: "", type: "" }), 3000);
+
+    setSaving(true);
+    try {
+      await api.put('/users/profile', { nome, celular, avatar: avatarSrc });
+      dispatch(salvarUsuario({ nome, email, celular, avatar: avatarSrc }));
+      dispatch(mostrarToastTemporario('Alterações salvas com sucesso!', 'success'));
+    } catch (err) {
+      dispatch(mostrarToastTemporario(err.message || 'Erro ao salvar alterações.', 'error'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -451,19 +470,14 @@ export default function EditarInfoPessoal() {
                   </button>
                 </div>
 
-                {/* Toast */}
-                {toast.msg && (
-                  <div className={`eip-toast ${toast.type}`}>{toast.msg}</div>
-                )}
-
                 {/* Ações */}
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <button type="button" className="eip-btn eip-btn-ghost" onClick={() => navigate("/perfil")}>
                     Cancelar
                   </button>
-                  <button type="submit" className="eip-btn eip-btn-primary">
+                  <button type="submit" className="eip-btn eip-btn-primary" disabled={saving}>
                     <i className="bi bi-check-lg" style={{ marginRight: "0.3rem" }} />
-                    Salvar Alterações
+                    {saving ? "Salvando..." : "Salvar Alterações"}
                   </button>
                 </div>
 

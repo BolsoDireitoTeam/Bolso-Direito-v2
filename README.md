@@ -1,16 +1,67 @@
-# React + Vite
+# Bolso Direito
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação web de controle financeiro pessoal. Permite registrar ganhos e gastos, acompanhar o saldo, gerenciar faturas de cartão de crédito, definir metas de economia e simular investimentos.
 
-Currently, two official plugins are available:
+## Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Registro de ganhos e gastos (débito e crédito) com categorização
+- Controle de faturas de cartão com parcelamento
+- Transações recorrentes (ganhos e gastos mensais)
+- Dashboard com visão geral do mês e gráficos
+- Relatório anual de receitas e despesas
+- Metas financeiras com acompanhamento de progresso (PRO)
+- Carteira de investimentos com simulação de rendimento (PRO)
+- Importação de extratos e faturas
+- Virada automática de mês
 
-## React Compiler
+## Tecnologias
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Frontend:** React 19, Vite, Redux Toolkit, React Router, Chart.js, Bootstrap Icons
 
-## Expanding the ESLint configuration
+**Backend:** Node.js, Express 5, armazenamento em memória (sem banco de dados externo)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Como rodar
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+O servidor inicia na porta `5000`.
+
+### Frontend
+
+Em outro terminal, na raiz do projeto:
+
+```bash
+npm install
+npm run dev
+```
+
+O frontend inicia na porta `5173` e se comunica com o backend via `http://localhost:5000/api`.
+
+> O backend usa armazenamento em memória. Os dados são perdidos ao reiniciar o servidor.
+
+## Estrutura
+
+```
+├── backend/
+│   └── src/
+│       ├── controllers/    # Lógica das rotas
+│       ├── models/         # Modelos in-memory (simulam MongoDB)
+│       ├── routes/         # Definição das rotas da API
+│       └── middlewares/    # Tratamento de erros
+├── src/
+│   ├── components/         # Componentes reutilizáveis (UI, layout, charts)
+│   ├── pages/              # Telas da aplicação
+│   ├── store/              # Redux (slices e configuração)
+│   ├── services/           # Clientes HTTP (api.js, BolsoDB.js, MetaDB.js)
+│   ├── hooks/              # Hooks customizados
+│   ├── styles/             # CSS
+│   ├── utils/              # Funções utilitárias (formatação, datas)
+│   └── validation/         # Schemas de validação (Yup)
+└── package.json
+```

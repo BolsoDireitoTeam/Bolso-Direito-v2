@@ -5,7 +5,8 @@
 // ============================================================
 
 import { useState, useMemo } from 'react'
-import { useFinance } from '../hooks/useFinance'
+import { useAppSelector } from '../store/hooks'
+import { selectTransacoes, selectConfiguracoes } from '../store/slices/financeSlice'
 import { moeda } from '../utils/format'
 import PageHeader from '../components/ui/PageHeader'
 import Card from '../components/ui/Card'
@@ -15,10 +16,11 @@ import PaywallOverlay from '../components/ui/PaywallOverlay'
 const MESES_LABEL = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 function ViewAnual() {
-  const { transacoes, configuracoes } = useFinance()
+  const transacoes = useAppSelector(selectTransacoes)
+  const configuracoes = useAppSelector(selectConfiguracoes)
   const [ano, setAno] = useState(new Date().getFullYear())
 
-  const isPremium = configuracoes.plano === 'pago'
+  const isPremium = configuracoes.plano === 'premium'
 
   const dados = useMemo(() => {
     const receitas = Array(12).fill(0)
@@ -55,7 +57,7 @@ function ViewAnual() {
         />
       )}
 
-      <div style={{ filter: isPremium ? 'none' : 'blur(4px)', pointerEvents: isPremium ? 'auto' : 'none' }}>
+      <div style={{ pointerEvents: isPremium ? 'auto' : 'none' }}>
         <PageHeader title="Análise Anual" subtitle="Receitas e despesas por mês" />
 
         {/* Navegação de ano */}

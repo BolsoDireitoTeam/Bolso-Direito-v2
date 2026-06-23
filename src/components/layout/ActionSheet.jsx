@@ -1,5 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useFinance } from '../../hooks/useFinance'
+import { useAppSelector, useAppDispatch } from '../../store/hooks'
+import { selectConfiguracoes, selectReceitasMes, selectDespesasMes, selectTotalFatura, virarMes } from '../../store/slices/financeSlice'
+import { selectMesAnoFiltro, mostrarToastTemporario } from '../../store/slices/uiSlice'
 
 const actions = [
   { label: 'Novo Ganho',       icon: 'bi-plus-circle',           path: '/transacoes/teclado/ganho' },
@@ -11,14 +13,17 @@ const actions = [
 function ActionSheet({ isOpen, onClose }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { virarMes, mostrarToast } = useFinance()
+  const dispatch = useAppDispatch()
+  const mesAnoFiltro = useAppSelector(selectMesAnoFiltro)
+  const configuracoes = useAppSelector(selectConfiguracoes)
+  const receitasMes = useAppSelector((state) => selectReceitasMes(state, mesAnoFiltro))
+  const despesasMes = useAppSelector((state) => selectDespesasMes(state, mesAnoFiltro))
+  const totalFaturaMesAtual = useAppSelector((state) => selectTotalFatura(state, mesAnoFiltro))
 
   const handleAction = (path) => {
     onClose()
     navigate(path)
   }
-
-  const { configuracoes, receitasMes, despesasMes, totalFaturaMesAtual } = useFinance()
 
   const handleVerProjecao = () => {
     const dia = configuracoes.diaVencimentoCartao || '?'
