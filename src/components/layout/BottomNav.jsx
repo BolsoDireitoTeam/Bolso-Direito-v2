@@ -8,6 +8,7 @@ const navigationWithDesc = sidebarNavItems.map(item => {
   const descriptions = {
     '/': 'Resumo do seu mês',
     '/transacoes': 'Histórico financeiro',
+    '/fatura': 'Fatura do cartão',
     '/view-mensal': 'Fluxo por período',
     '/metas': 'Seus objetivos',
     '/investimentos': 'Carteira e aportes'

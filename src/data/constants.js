@@ -15,9 +15,10 @@ export const colors = {
 
 // ── Navegação Sidebar ───────────────────────────────────────────
 export const sidebarNavItems = [
-  { label: 'Visão Geral',   icon: 'bi-grid-1x2',       path: '/' },
-  { label: 'Transações',    icon: 'bi-list-check',      path: '/transacoes' },
-  { label: 'View Mensal',   icon: 'bi-calendar3',       path: '/view-mensal' },
-  { label: 'Metas',         icon: 'bi-bullseye',        path: '/metas' },
-  { label: 'Investimentos', icon: 'bi-graph-up-arrow',  path: '/investimentos' },
+  { label: 'Visão Geral',   icon: 'bi-grid-1x2',          path: '/' },
+  { label: 'Transações',    icon: 'bi-list-check',         path: '/transacoes' },
+  { label: 'Fatura',        icon: 'bi-credit-card-2-front', path: '/fatura' },
+  { label: 'View Mensal',   icon: 'bi-calendar3',          path: '/view-mensal' },
+  { label: 'Metas',         icon: 'bi-bullseye',           path: '/metas' },
+  { label: 'Investimentos', icon: 'bi-graph-up-arrow',     path: '/investimentos' },
 ]

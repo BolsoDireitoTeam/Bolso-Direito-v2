@@ -46,6 +46,7 @@ import ViewMensal from './pages/ViewMensal'
 import ViewAnual from './pages/ViewAnual'
 import UploadExtrato from './pages/UploadExtrato'
 import UploadFatura from './pages/UploadFatura'
+import Fatura from './pages/Fatura'
 import Metas from './pages/Metas'
 import NovaMeta from './pages/NovaMeta'
 import MetaDetalhes from './pages/MetaDetalhes'
@@ -139,6 +140,7 @@ function App() {
                     <Route path="/view-anual" element={<ViewAnual />} />
                     <Route path="/upload/extrato" element={<UploadExtrato />} />
                     <Route path="/upload/fatura" element={<UploadFatura />} />
+                    <Route path="/fatura" element={<Fatura />} />
                     <Route path="/metas" element={<Metas />} />
                     <Route path="/metas/nova" element={<NovaMeta />} />
                     <Route path="/metas/:id" element={<MetaDetalhes />} />
