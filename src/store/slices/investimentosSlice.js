@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
 import { api } from '../../services/api'
-
 import { mostrarToastTemporario } from './uiSlice'
 
 // ─────────────────────────────────────────────────────────────
@@ -16,12 +15,13 @@ export const investimentosAdapter = createEntityAdapter({
 // ─────────────────────────────────────────────────────────────
 
 async function _snapshotInvestimentos() {
-  const res = await api.get('/investments');
-  const investimentos = res.data.data ? res.data.data.map(item => ({ ...item, id: item._id })) : res.data.map(item => ({ ...item, id: item._id }));
-  
-  const totalInvestido = investimentos.reduce((acc, curr) => acc + curr.valorInvestido, 0);
-  const montanteTotal = investimentos.reduce((acc, curr) => acc + curr.valorAtual, 0);
-  const rendimentoTotal = montanteTotal - totalInvestido;
+  const res = await api.get('/investments')
+  const raw = res.data.data ?? res.data
+  const investimentos = raw.map(item => ({ ...item, id: item.id || item._id }))
+
+  const totalInvestido = investimentos.reduce((acc, curr) => acc + (curr.valorInvestido ?? curr.totalAportado ?? 0), 0)
+  const montanteTotal  = investimentos.reduce((acc, curr) => acc + (curr.valorAtual ?? curr.montante ?? 0), 0)
+  const rendimentoTotal = montanteTotal - totalInvestido
 
   return {
     investimentos,
@@ -35,10 +35,7 @@ async function _snapshotInvestimentos() {
 
 export const initInvestimentos = createAsyncThunk(
   'investimentos/init',
-  async () => {
-    // init removido
-    return _snapshotInvestimentos()
-  }
+  async () => _snapshotInvestimentos()
 )
 
 export const adicionarInvestimento = createAsyncThunk(
@@ -53,13 +50,11 @@ export const adicionarInvestimento = createAsyncThunk(
 export const removerInvestimento = createAsyncThunk(
   'investimentos/remover',
   async (id, { dispatch }) => {
-    // O backend já calcula o montante e faz o resgate ao saldo automaticamente
     await api.delete(`/investments/${id}`)
     dispatch(mostrarToastTemporario('Investimento resgatado e valor devolvido ao saldo.', 'success'))
-    // Recarrega o estado financeiro junto
     const [invSnapshot, financeSnapshot] = await Promise.all([
       _snapshotInvestimentos(),
-      api.get("/users/full-state").then(r => r.data.data || r.data),
+      api.get('/users/full-state').then(r => r.data.data || r.data),
     ])
     return { ...invSnapshot, finance: financeSnapshot }
   }
@@ -78,18 +73,18 @@ export const aportarInvestimento = createAsyncThunk(
   'investimentos/aportar',
   async ({ id, valor }, { dispatch, rejectWithValue }) => {
     try {
-      // O backend já desconta o valor do saldo e registra o aporte no investimento
-      await api.post(`/investments/${id}/contribute`, { amount: valor })
+      // Rota correta: /:id/aportes com body { valor, data }
+      await api.post(`/investments/${id}/aportes`, { valor, data: new Date().toISOString().slice(0, 10) })
       dispatch(mostrarToastTemporario('Aporte realizado com sucesso!', 'success'))
       const [invSnapshot, financeSnapshot] = await Promise.all([
         _snapshotInvestimentos(),
-        api.get("/users/full-state").then(r => r.data.data || r.data),
+        api.get('/users/full-state').then(r => r.data.data || r.data),
       ])
       return { ...invSnapshot, finance: financeSnapshot }
     } catch (err) {
       console.error('[investimentosSlice] Erro no aporte:', err)
-      dispatch(mostrarToastTemporario(err.message, 'error'))
-      return rejectWithValue(err.message)
+      dispatch(mostrarToastTemporario(err.response?.data?.message || err.message, 'error'))
+      return rejectWithValue(err.response?.data?.message || err.message)
     }
   }
 )
@@ -174,8 +169,6 @@ export const selectInvestimentosInitialized = (state) => state.investimentos.ini
 export const selectInvestimentosStatus = (state) => state.investimentos.status
 export const selectInvestimentosError = (state) => state.investimentos.error
 
-// Re-exporta a função de cálculo do service para uso direto em componentes
-// (cálculo local de previsão — não requer chamada à API)
 export const calcularValorInvestimento = (montante, taxaMensal, meses) => {
-  return montante * Math.pow(1 + taxaMensal / 100, meses);
-};
+  return montante * Math.pow(1 + taxaMensal / 100, meses)
+}

@@ -383,10 +383,16 @@ export default function EditarDadosFinanceiros() {
   const [reservaMeses,    setReservaMeses]    = useState(financeiro?.reservaMeses    ?? "");
   const [percInvestimento, setPercInvestimento] = useState(financeiro?.percInvestimento ?? "");
 
-  /* Orçamento */
-  const [orcamento, setOrcamento] = useState(
-    financeiro?.orcamento ?? { alimentacao: "", transporte: "", lazer: "", saude: "", educacao: "" }
-  );
+  /* Orçamento por Categoria (estado local para edição) */
+  const [orcamentosLocais, setOrcamentosLocais] = useState({});
+  
+  useEffect(() => {
+    const orcs = {};
+    categories.forEach(c => {
+      orcs[c.id] = c.orcamento || "";
+    });
+    setOrcamentosLocais(orcs);
+  }, [categories]);
 
   /* Alertas */
   const [alertaGasto,  setAlertaGasto]  = useState(financeiro?.alertaGasto  ?? true);
@@ -466,7 +472,18 @@ export default function EditarDadosFinanceiros() {
       diaViradaMes: parseInt(diaVirada) || null,
     }));
 
-    dispatch(salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, orcamento, alertaGasto, alertaFatura, alertaMeta }));
+    dispatch(salvarFinanceiro({ ganhos, gastos, metaPoupanca, reservaMeses, percInvestimento, alertaGasto, alertaFatura, alertaMeta }));
+
+    categories.forEach(cat => {
+      const novoOrcamentoStr = orcamentosLocais[cat.id];
+      if (novoOrcamentoStr !== undefined) {
+        const novoOrcamento = parseVal(novoOrcamentoStr);
+        const orcamentoAtual = cat.orcamento || 0;
+        if (novoOrcamento !== orcamentoAtual) {
+          dispatch(updateCategory({ id: cat.id, changes: { orcamento: novoOrcamento } }));
+        }
+      }
+    });
 
     dispatch(mostrarToastTemporario("Dados financeiros salvos com sucesso!", "success"));
   };
@@ -817,17 +834,11 @@ export default function EditarDadosFinanceiros() {
               {/* Orçamento por categoria */}
               <div className="edf-card">
                 <p className="edf-section-title mb-3">📊 Orçamento por Categoria</p>
-                {[
-                  { key: "alimentacao", color: "#4ee3c4", label: "Alimentação" },
-                  { key: "transporte",  color: "#ACB6E5", label: "Transporte" },
-                  { key: "lazer",       color: "#4ee3a0", label: "Lazer" },
-                  { key: "saude",       color: "#f4c864", label: "Saúde" },
-                  { key: "educacao",    color: "#f06a6a", label: "Educação" },
-                ].map(({ key, color, label }) => (
-                  <div className="edf-budget-row" key={key}>
+                {categories.map((cat) => (
+                  <div className="edf-budget-row" key={cat.id}>
                     <div className="edf-budget-cat">
-                      <span className="edf-budget-dot" style={{ background: color }} />
-                      <label className="edf-label mb-0">{label}</label>
+                      <span className="edf-budget-dot" style={{ background: cat.cor }} />
+                      <label className="edf-label mb-0" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cat.nome}</label>
                     </div>
                     <div className="edf-budget-input">
                       <div className="edf-input-wrap no-mb">
@@ -835,8 +846,8 @@ export default function EditarDadosFinanceiros() {
                           className="edf-input no-prefix"
                           type="text"
                           placeholder="R$ 0,00"
-                          value={orcamento[key]}
-                          onChange={(e) => setOrcamento({ ...orcamento, [key]: e.target.value })}
+                          value={orcamentosLocais[cat.id] ?? ""}
+                          onChange={(e) => setOrcamentosLocais({ ...orcamentosLocais, [cat.id]: e.target.value })}
                         />
                         <i className="bi bi-pencil edf-pencil-icon" />
                       </div>

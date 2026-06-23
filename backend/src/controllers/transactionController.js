@@ -81,6 +81,44 @@ exports.create = async (req, res) => {
   }
 };
 
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user;
+    const { nome, valor, categoria, data } = req.body;
+
+    const tx = await Transaction.findById(id);
+    if (!tx || tx.userId.toString() !== userId) {
+      return res.status(404).json({ success: false, message: 'Transação não encontrada.' });
+    }
+
+    // Atualiza saldo se o valor mudou (só para ganho e gasto-débito)
+    if (valor !== undefined && valor !== tx.valor) {
+      const user = await User.findById(userId);
+      let novoSaldo = user.financeiro?.saldo || 0;
+
+      if (tx.tipo === 'ganho') {
+        novoSaldo = novoSaldo - tx.valor + valor;
+      } else if (tx.tipo === 'gasto' && tx.subtipo === 'debito') {
+        novoSaldo = novoSaldo + tx.valor - valor;
+      }
+
+      await User.findByIdAndUpdate(userId, { 'financeiro.saldo': novoSaldo });
+    }
+
+    const campos = {};
+    if (nome !== undefined) campos.nome = nome;
+    if (valor !== undefined) campos.valor = valor;
+    if (categoria !== undefined) campos.categoria = categoria;
+    if (data !== undefined) campos.data = data;
+
+    const atualizada = await Transaction.findByIdAndUpdate(id, campos, { new: true });
+    return res.status(200).json({ success: true, data: atualizada });
+  } catch (error) {
+    throw error;
+  }
+};
+
 exports.delete = async (req, res) => {
   try {
     const { id } = req.params;

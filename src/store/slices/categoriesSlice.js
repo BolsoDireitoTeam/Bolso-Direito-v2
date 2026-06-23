@@ -27,10 +27,11 @@ export const addCategory = createAsyncThunk(
     try {
       const res = await api.post('/categories', categoryData)
       dispatch(mostrarToastTemporario('Categoria criada com sucesso!', 'success'))
-      return { ...res.data.data, id: res.data.data._id }
+      const newCat = res.data.data || res.data;
+      return { ...newCat, id: newCat._id }
     } catch (err) {
-      dispatch(mostrarToastTemporario(err.response?.data?.message || 'Erro ao criar categoria.', 'error'))
-      return rejectWithValue(err.response?.data?.message)
+      dispatch(mostrarToastTemporario(err.response?.data?.message || err.message || 'Erro ao criar categoria.', 'error'))
+      return rejectWithValue(err.response?.data?.message || err.message)
     }
   }
 )
@@ -41,10 +42,11 @@ export const updateCategory = createAsyncThunk(
     try {
       const res = await api.put(`/categories/${id}`, changes)
       dispatch(mostrarToastTemporario('Categoria atualizada.', 'success'))
-      return { id, changes: { ...res.data.data, id: res.data.data._id } }
+      const updatedCat = res.data.data || res.data;
+      return { id, changes: { ...updatedCat, id: updatedCat._id } }
     } catch (err) {
-      dispatch(mostrarToastTemporario(err.response?.data?.message || 'Erro ao atualizar categoria.', 'error'))
-      return rejectWithValue(err.response?.data?.message)
+      dispatch(mostrarToastTemporario(err.response?.data?.message || err.message || 'Erro ao atualizar categoria.', 'error'))
+      return rejectWithValue(err.response?.data?.message || err.message)
     }
   }
 )
@@ -57,8 +59,8 @@ export const deleteCategory = createAsyncThunk(
       dispatch(mostrarToastTemporario('Categoria removida com sucesso.', 'success'))
       return id
     } catch (err) {
-      dispatch(mostrarToastTemporario(err.response?.data?.message || 'Erro ao remover categoria.', 'error'))
-      return rejectWithValue(err.response?.data?.message)
+      dispatch(mostrarToastTemporario(err.response?.data?.message || err.message || 'Erro ao remover categoria.', 'error'))
+      return rejectWithValue(err.response?.data?.message || err.message)
     }
   }
 )

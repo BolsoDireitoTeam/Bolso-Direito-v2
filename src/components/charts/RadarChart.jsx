@@ -48,6 +48,16 @@ function RadarChart({ data }) {
         position: 'bottom',
         labels: { boxWidth: 10, padding: 10, font: { size: 10 } },
       },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            const isMeta = context.datasetIndex === 1;
+            const absValue = isMeta ? data.metaAbs[context.dataIndex] : data.atualAbs[context.dataIndex];
+            const formattedCurrency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(absValue || 0);
+            return `${context.dataset.label}: ${context.raw}% (${formattedCurrency})`;
+          }
+        }
+      }
     },
     scales: {
       r: {
@@ -61,7 +71,7 @@ function RadarChart({ data }) {
   return (
     <Card>
       <SectionHeader title="Perfil de Gastos" />
-      <div className="chart-wrap">
+      <div className="chart-wrap" style={{ height: '400px' }}>
         <Radar data={chartData} options={options} />
       </div>
     </Card>

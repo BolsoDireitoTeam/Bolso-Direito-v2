@@ -23,6 +23,10 @@ const categorySchema = new mongoose.Schema({
   isDefault: {
     type: Boolean,
     default: false, // Serve para indicar que é uma daquelas categorias base que o sistema gerou
+  },
+  orcamento: {
+    type: Number,
+    default: 0,
   }
 }, {
   timestamps: true,
