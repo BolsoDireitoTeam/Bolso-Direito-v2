@@ -32,6 +32,9 @@ const userSchema = new mongoose.Schema({
     saldo: { type: Number, default: 0 },
     diaVencimentoCartao: { type: Number, default: null },
     limiteCartao: { type: Number, default: 0 },
+    diaViradaMes: { type: Number, default: null },
+    diaRecebimentoSalario: { type: Number, default: null },
+    ultimoMesProcessado: { type: String, default: null },
     plano: { type: String, default: 'gratuito', enum: ['gratuito', 'premium'] },
   },
 }, {

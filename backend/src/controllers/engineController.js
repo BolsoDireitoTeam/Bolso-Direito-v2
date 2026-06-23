@@ -11,11 +11,29 @@ exports.virarMes = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
 
-    let saldoAtual = user.financeiro?.saldo || 0;
-    const saldoAntes = saldoAtual;
-
     const data = dataRef || new Date().toISOString().slice(0, 10);
     const mesVirada = mesAlvo || data.slice(0, 7);
+
+    // ── Idempotência: não processar o mesmo mês duas vezes ──
+    if (user.financeiro?.ultimoMesProcessado === mesVirada) {
+      return res.status(200).json({
+        success: true,
+        message: `Mês ${mesVirada} já foi processado anteriormente.`,
+        data: {
+          mesAlvo: mesVirada,
+          jaProcessado: true,
+          saldoAntes: user.financeiro?.saldo || 0,
+          totalGanhos: 0,
+          totalGastos: 0,
+          totalFatura: 0,
+          totalMetas: 0,
+          saldoDepois: user.financeiro?.saldo || 0,
+        }
+      });
+    }
+
+    let saldoAtual = user.financeiro?.saldo || 0;
+    const saldoAntes = saldoAtual;
 
     // 1. Ganhos Mensais
     const ganhos = await RecurrentTransaction.find({ userId, tipo: 'ganho' });
@@ -67,8 +85,11 @@ exports.virarMes = async (req, res) => {
       await Goal.findByIdAndUpdate(m._id, { valorAtual: novoValor, $push: { aportes: novoAporte } });
     }
 
-    // 5. Commit
-    await User.findByIdAndUpdate(userId, { 'financeiro.saldo': saldoAtual });
+    // 5. Commit — salva saldo E marca o mês como processado (atômico)
+    await User.findByIdAndUpdate(userId, {
+      'financeiro.saldo': saldoAtual,
+      'financeiro.ultimoMesProcessado': mesVirada,
+    });
 
     res.status(200).json({
       success: true,
@@ -84,6 +105,11 @@ exports.virarMes = async (req, res) => {
     });
 
   } catch (error) {
-    throw error;
+    console.error('[Engine] Erro na virada de mês:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao executar a virada de mês.',
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+    });
   }
 };

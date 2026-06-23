@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
-import { selectConfiguracoes, virarMes, salvarConfiguracoes } from '../store/slices/financeSlice'
+import { selectConfiguracoes, virarMes } from '../store/slices/financeSlice'
 import { mostrarToastTemporario } from '../store/slices/uiSlice'
 
 function getMesAtual() {
@@ -34,7 +34,6 @@ export function useAutoViradaMes() {
     if (deveConsolidar && !jaProcessou) {
       try {
         await dispatch(virarMes()).unwrap()
-        await dispatch(salvarConfiguracoes({ ultimoMesProcessado: mesAtual })).unwrap()
 
         dispatch(
           mostrarToastTemporario(

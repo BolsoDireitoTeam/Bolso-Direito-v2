@@ -113,7 +113,7 @@ exports.updateProfile = async (req, res) => {
 
   const { nome, celular, avatar } = req.body;
   
-  const updated = await User.findByIdAndUpdate(userId, { nome, celular, avatar }, { new: true, runValidators: true });
+  const updated = await User.findByIdAndUpdate(userId, { nome, celular, avatar }, { returnDocument: 'after', runValidators: true });
   res.status(200).json({ success: true, data: updated });
 };
 
@@ -124,7 +124,7 @@ exports.updateFinance = async (req, res) => {
   if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
 
   const financeiroAtualizado = { ...user.financeiro.toObject(), ...req.body };
-  const updated = await User.findByIdAndUpdate(userId, { financeiro: financeiroAtualizado }, { new: true, runValidators: true });
+  const updated = await User.findByIdAndUpdate(userId, { financeiro: financeiroAtualizado }, { returnDocument: 'after', runValidators: true });
 
   res.status(200).json({ success: true, data: updated });
 };

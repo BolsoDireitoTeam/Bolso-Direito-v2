@@ -93,7 +93,7 @@ exports.update = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user;
-    const updated = await Investment.findOneAndUpdate({ _id: id, userId }, req.body, { new: true, runValidators: true });
+    const updated = await Investment.findOneAndUpdate({ _id: id, userId }, req.body, { returnDocument: 'after', runValidators: true });
     if (!updated) return res.status(404).json({ success: false, message: 'Não encontrado.' });
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
@@ -149,7 +149,7 @@ exports.addAporte = async (req, res) => {
     const updated = await Investment.findOneAndUpdate({ _id: id, userId }, 
       id,
       { $push: { aportes: { valor: valorNum, data: data || new Date().toISOString().split('T')[0] } } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     res.status(201).json({ success: true, data: updated });

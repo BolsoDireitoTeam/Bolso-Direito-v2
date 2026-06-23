@@ -66,7 +66,7 @@ exports.update = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user;
-    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, req.body, { new: true, runValidators: true });
+    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, req.body, { returnDocument: 'after', runValidators: true });
     if (!updated) return res.status(404).json({ success: false, message: 'Não encontrado.' });
     res.status(200).json({ success: true, data: updated });
   } catch (error) {
@@ -112,7 +112,7 @@ exports.contribute = async (req, res) => {
       tipo: tipo || 'aporte'
     };
 
-    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, { valorAtual: novoValor, $push: { aportes: novoAporte } }, { new: true });
+    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, { valorAtual: novoValor, $push: { aportes: novoAporte } }, { returnDocument: 'after' });
 
     res.status(201).json({ success: true, data: updated });
   } catch (error) {
@@ -143,7 +143,7 @@ exports.redeem = async (req, res) => {
       tipo: 'resgate'
     };
 
-    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, { valorAtual: novoValor, $push: { aportes: novoAporte } }, { new: true });
+    const updated = await Goal.findOneAndUpdate({ _id: id, userId }, { valorAtual: novoValor, $push: { aportes: novoAporte } }, { returnDocument: 'after' });
 
     res.status(200).json({ success: true, data: updated });
   } catch (error) {

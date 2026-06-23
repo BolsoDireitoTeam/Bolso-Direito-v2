@@ -61,7 +61,7 @@ exports.update = async (req, res) => {
     const oldCat = await Category.findOne({ _id: id, userId });
     if (!oldCat) return res.status(404).json({ success: false, message: 'Categoria não encontrada.' });
 
-    const updated = await Category.findOneAndUpdate({ _id: id, userId }, req.body, { new: true, runValidators: true });
+    const updated = await Category.findOneAndUpdate({ _id: id, userId }, req.body, { returnDocument: 'after', runValidators: true });
     
     // NOTA: Se atualizar o nome da categoria, atualizamos as transações antigas.
     if (req.body.nome && oldCat.nome !== req.body.nome) {

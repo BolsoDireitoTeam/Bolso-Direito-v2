@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { selectConfiguracoes, salvarConfiguracoes } from '../store/slices/financeSlice';
 import { selectFinanceiro, salvarFinanceiro } from '../store/slices/userSlice';
@@ -344,6 +344,7 @@ function pctColor(val) {
 /* ── Componente ── */
 export default function EditarDadosFinanceiros() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const configuracoes = useAppSelector(selectConfiguracoes);
   const financeiro = useAppSelector(selectFinanceiro);
@@ -401,6 +402,19 @@ export default function EditarDadosFinanceiros() {
 
   /* Toast */
   const [toast, setToast] = useState({ msg: "", type: "" });
+
+  /* Scroll para hash */
+  useEffect(() => {
+    if (location.hash === "#orcamento") {
+      // Pequeno timeout para garantir que o DOM renderizou
+      setTimeout(() => {
+        const el = document.getElementById("orcamento");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    }
+  }, [location]);
 
   /* Sincronizar configurações do contexto caso mudem */
   useEffect(() => {
@@ -832,7 +846,7 @@ export default function EditarDadosFinanceiros() {
               </div>
 
               {/* Orçamento por categoria */}
-              <div className="edf-card">
+              <div className="edf-card" id="orcamento">
                 <p className="edf-section-title mb-3">📊 Orçamento por Categoria</p>
                 {categories.map((cat) => (
                   <div className="edf-budget-row" key={cat.id}>

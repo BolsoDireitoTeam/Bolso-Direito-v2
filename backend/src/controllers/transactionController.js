@@ -112,7 +112,7 @@ exports.update = async (req, res) => {
     if (categoria !== undefined) campos.categoria = categoria;
     if (data !== undefined) campos.data = data;
 
-    const atualizada = await Transaction.findByIdAndUpdate(id, campos, { new: true });
+    const atualizada = await Transaction.findByIdAndUpdate(id, campos, { returnDocument: 'after' });
     return res.status(200).json({ success: true, data: atualizada });
   } catch (error) {
     throw error;
