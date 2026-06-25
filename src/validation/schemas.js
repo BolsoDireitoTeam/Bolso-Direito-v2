@@ -75,6 +75,9 @@ export const novoInvestimentoSchema = yup.object({
     .typeError('Informe um valor numérico.')
     .min(0, 'Taxa não pode ser negativa.')
     .required('Informe a taxa mensal.'),
+  dataInicio: yup
+    .string()
+    .required('Informe a data de início.'),
 })
 
 // ── Editar Info Pessoal ──────────────────────────────────────

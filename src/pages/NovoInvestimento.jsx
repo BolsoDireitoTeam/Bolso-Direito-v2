@@ -14,7 +14,7 @@ function NovoInvestimento() {
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(novoInvestimentoSchema),
-    defaultValues: { nome: '', tipo: '', valor: '', taxaMensal: '0.80' },
+    defaultValues: { nome: '', tipo: '', valor: '', taxaMensal: '0.80', dataInicio: new Date().toISOString().split('T')[0] },
   })
 
   const onSubmit = (data) => {
@@ -40,6 +40,7 @@ function NovoInvestimento() {
       tipo: labelTipo,
       valorInicial: data.valor,
       taxaMensal: data.taxaMensal / 100,
+      dataInicio: data.dataInicio,
       icone,
       cor,
     }))
@@ -152,6 +153,24 @@ function NovoInvestimento() {
                 <small style={{ color: 'var(--bd-muted)', fontSize: '0.75rem' }}>
                   Taxa fixa de rendimento mensal. Pode ser editada depois.
                 </small>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label" style={{ fontSize: '0.85rem', color: 'var(--bd-muted)' }}>
+                  Data de Início
+                </label>
+                <input
+                  type="date"
+                  className={`form-control${errors.dataInicio ? ' is-invalid' : ''}`}
+                  {...register('dataInicio')}
+                  style={{
+                    background: 'rgba(0,0,0,0.1)',
+                    border: '1px solid var(--bd-border)',
+                    color: 'var(--bd-text)',
+                    colorScheme: 'dark'
+                  }}
+                />
+                {errors.dataInicio && <div className="invalid-feedback" style={{display:'block'}}>{errors.dataInicio.message}</div>}
               </div>
 
               <div className="d-grid gap-2 d-md-flex justify-content-md-end">

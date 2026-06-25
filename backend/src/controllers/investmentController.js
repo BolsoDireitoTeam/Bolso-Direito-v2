@@ -82,6 +82,20 @@ exports.getById = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const userId = req.user;
+    const { valorInicial } = req.body;
+    
+    if (valorInicial && userId) {
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+      
+      const saldoAtual = user.financeiro?.saldo || 0;
+      if (saldoAtual < valorInicial) {
+        return res.status(400).json({ success: false, message: 'Saldo insuficiente para este investimento inicial.' });
+      }
+      
+      await User.findByIdAndUpdate(userId, { 'financeiro.saldo': Number((saldoAtual - valorInicial).toFixed(2)) });
+    }
+
     const novoInv = await Investment.create({ ...req.body, userId });
     res.status(201).json({ success: true, data: novoInv });
   } catch (error) {
@@ -141,13 +155,16 @@ exports.addAporte = async (req, res) => {
       const user = await User.findById(userId);
       if (user) {
         const saldoAtual = user.financeiro?.saldo || 0;
+        if (saldoAtual < valorNum) {
+          return res.status(400).json({ success: false, message: 'Saldo insuficiente para este aporte.' });
+        }
         await User.findByIdAndUpdate(userId, { 'financeiro.saldo': Number((saldoAtual - valorNum).toFixed(2)) });
       }
     }
 
     // Adiciona o aporte ao array usando $push do Mongoose
-    const updated = await Investment.findOneAndUpdate({ _id: id, userId }, 
-      id,
+    const updated = await Investment.findOneAndUpdate(
+      { _id: id, userId }, 
       { $push: { aportes: { valor: valorNum, data: data || new Date().toISOString().split('T')[0] } } },
       { returnDocument: 'after' }
     );

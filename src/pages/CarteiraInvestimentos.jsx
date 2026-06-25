@@ -65,7 +65,7 @@ function CarteiraInvestimentos({ onAddClick }) {
         {/* Grid de investimentos */}
         <div className="row g-3">
           {investimentos.map((inv) => {
-            const { montante, rendimento, totalAportado } = calcularValorInvestimento(inv)
+            const { montante, rendimento, totalAportado } = inv
             const rendPct = totalAportado > 0 ? ((rendimento / totalAportado) * 100).toFixed(1) : '0.0'
             const isPositive = rendimento >= 0
 
